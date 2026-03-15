@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โปรไฟล์ — 02HUB</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            02HUB
+        </a>
+        <div class="nav-links">
+            <a href="/">หน้าแรก</a>
+            <a href="/search.html">ค้นหา</a>
+            <a href="/airing.html">กำลังฉาย</a>
+        </div>
+        <div class="nav-search">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="ค้นหาอนิเมะ..." autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="nav-user" id="navUser"></div>
+    </div>
+</nav>
+
+<!-- PROFILE HEADER -->
+<div class="profile-header">
+    <div class="container">
+        <div class="profile-info">
+            <img class="profile-avatar" id="profileAvatar" src="" alt="Avatar"
+                 onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 120 120%22><rect fill=%22%231a1a2e%22 width=%22120%22 height=%22120%22 rx=%2260%22/><text x=%2250%%22 y=%2255%%22 text-anchor=%22middle%22 fill=%22%23a855f7%22 font-size=%2250%22>?</text></svg>'">
+            <div>
+                <h1 class="profile-name" id="profileName"></h1>
+                <p style="color:var(--text-muted);margin-top:4px;" id="profileEmail"></p>
+                <div class="profile-stats">
+                    <div class="profile-stat">
+                        <div class="stat-value" id="statDays">0</div>
+                        <div class="stat-label">วันที่ดู</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="stat-value" id="statEps">0</div>
+                        <div class="stat-label">ตอนที่ดูจบ</div>
+                    </div>
+                    <div class="profile-stat">
+                        <div class="stat-value" id="statAnime">0</div>
+                        <div class="stat-label">เรื่องในรายการ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTENT -->
+<div class="container" style="padding-top:var(--space-xl);padding-bottom:var(--space-3xl);">
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('continue', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><path d="M1 4v6h6" stroke="var(--accent-purple)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke="var(--accent-purple)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> ดูต่อ</div>
+        <div class="tab" onclick="switchTab('watching', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><rect x="2" y="4" width="20" height="14" rx="2" stroke="var(--accent-cyan)" stroke-width="2" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="21" stroke="var(--accent-cyan)" stroke-width="2"/></svg> กำลังดู</div>
+        <div class="tab" onclick="switchTab('want', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><rect x="3" y="3" width="18" height="18" rx="2" stroke="var(--accent-blue)" stroke-width="2" fill="none"/><line x1="8" y1="9" x2="16" y2="9" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="13" x2="14" y2="13" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="17" x2="12" y2="17" stroke="var(--accent-blue)" stroke-width="2" stroke-linecap="round"/></svg> อยากดู</div>
+        <div class="tab" onclick="switchTab('completed', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" stroke="#22c55e" stroke-width="2" fill="none"/><path d="M8 12l3 3 5-6" stroke="#22c55e" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> ดูจบแล้ว</div>
+        <div class="tab" onclick="switchTab('on_hold', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" stroke="var(--accent-yellow)" stroke-width="2" fill="none"/><rect x="9" y="8" width="2" height="8" rx="1" fill="var(--accent-yellow)"/><rect x="13" y="8" width="2" height="8" rx="1" fill="var(--accent-yellow)"/></svg> ดองไว้</div>
+    </div>
+
+    <div class="tab-content active" id="tab-continue">
+        <div id="continueList" style="display:flex;flex-direction:column;gap:var(--space-md);"></div>
+    </div>
+
+    <div class="tab-content" id="tab-watching">
+        <div class="watchlist-grid" id="watchingGrid"></div>
+    </div>
+
+    <div class="tab-content" id="tab-want">
+        <div class="watchlist-grid" id="wantGrid"></div>
+    </div>
+
+    <div class="tab-content" id="tab-completed">
+        <div class="watchlist-grid" id="completedGrid"></div>
+    </div>
+
+    <div class="tab-content" id="tab-on_hold">
+        <div class="watchlist-grid" id="onHoldGrid"></div>
+    </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay auth-modal" id="authModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>ยินดีต้อนรับสู่ 02HUB</h2>
+            <button onclick="closeAuthModal()" style="font-size:20px;color:var(--text-muted);">&times;</button>
+        </div>
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
+            <div class="auth-tab" onclick="switchAuthTab('register')">สมัครสมาชิก</div>
+        </div>
+        <div class="modal-body">
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div>
+                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="loginRecaptcha"></div></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ</button>
+            </form>
+            <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+                <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div>
+                <div class="form-group"><label>อีเมล</label><input type="email" name="email" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div>
+                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="registerRecaptcha"></div></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">สมัครสมาชิก</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!currentUser) {
+            showAuthModal();
+            return;
+        }
+        loadProfile();
+    });
+
+    async function loadProfile() {
+        try {
+            const [user, stats, watchlist, history] = await Promise.all([
+                api(`/api/users/${currentUser.id}`),
+                api(`/api/users/${currentUser.id}/stats`),
+                api(`/api/users/${currentUser.id}/watchlist`),
+                api(`/api/users/${currentUser.id}/history`)
+            ]);
+
+            // Profile header
+            document.getElementById('profileAvatar').src = user.avatar || '';
+            document.getElementById('profileName').textContent = user.username;
+            document.getElementById('profileEmail').textContent = user.email;
+            document.getElementById('statDays').textContent = stats.days_watched;
+            document.getElementById('statEps').textContent = stats.episodes_watched;
+            document.getElementById('statAnime').textContent = watchlist.length;
+
+            // Continue Watching
+            const inProgress = history.filter(h => !h.completed && h.progress_seconds > 0);
+            const continueList = document.getElementById('continueList');
+            if (inProgress.length === 0) {
+                continueList.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px 0;">ยังไม่มีรายการดูต่อ</p>';
+            } else {
+                continueList.innerHTML = inProgress.map(h => {
+                    const progressPct = h.duration > 0 ? Math.round(h.progress_seconds / h.duration * 100) : 0;
+                    const mins = Math.floor(h.progress_seconds / 60);
+                    const secs = h.progress_seconds % 60;
+                    return `
+                        <div class="continue-card" onclick="window.location.href='/watch.html?anime_id=${h.anime_id}&ep=${h.number}'">
+                            <img class="thumb" src="${h.cover_image || ''}" alt=""
+                                 onerror="this.style.background='var(--bg-tertiary)'">
+                            <div class="ep-info" style="flex:1;">
+                                <h4>${h.anime_title}</h4>
+                                <p>ตอนที่ ${h.number} — ดูถึง ${mins}:${secs.toString().padStart(2,'0')}</p>
+                                <div class="progress-mini"><span style="width:${progressPct}%"></span></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Watchlists
+            renderWatchlist('watchingGrid', watchlist.filter(w => w.status === 'watching'));
+            renderWatchlist('wantGrid', watchlist.filter(w => w.status === 'want'));
+            renderWatchlist('completedGrid', watchlist.filter(w => w.status === 'completed'));
+            renderWatchlist('onHoldGrid', watchlist.filter(w => w.status === 'on_hold'));
+
+        } catch (err) {
+            console.error('Profile load error:', err);
+        }
+    }
+
+    function renderWatchlist(containerId, items) {
+        const grid = document.getElementById(containerId);
+        if (!items.length) {
+            grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px 0;grid-column:1/-1;">ยังไม่มีรายการ</p>';
+            return;
+        }
+        grid.innerHTML = items.map(w => `
+            <div class="anime-card" onclick="window.location.href='/anime.html?id=${w.anime_id}'">
+                ${w.cover_image
+                    ? `<img class="poster" src="${w.cover_image}" alt="${w.title}" loading="lazy"
+                            onerror="this.outerHTML='<div class=\\'poster-placeholder\\'><svg viewBox=\'0 0 24 24\' width=\'32\' height=\'32\'><rect x=\'2\' y=\'3\' width=\'20\' height=\'18\' rx=\'3\' stroke=\'%239d9dba\' stroke-width=\'2\' fill=\'none\'/><polygon points=\'10 8 16 12 10 16\' fill=\'%239d9dba\'/></svg></div>'">`
+                    : '<div class="poster-placeholder"><svg viewBox="0 0 24 24" width="32" height="32"><rect x="2" y="3" width="20" height="18" rx="3" stroke="var(--text-muted)" stroke-width="2" fill="none"/><polygon points="10 8 16 12 10 16" fill="var(--text-muted)"/></svg></div>'}
+                <div class="card-overlay"><div class="play-btn">▶</div></div>
+                <div class="card-info">
+                    <h3 class="card-title">${w.title}</h3>
+                    <div class="card-meta">
+                        <span class="card-rating"><svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" style="display:inline;vertical-align:middle;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="#facc15"/></svg> ${w.rating}</span>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function switchTab(tabName, el) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+</script>
+</body>
+</html>

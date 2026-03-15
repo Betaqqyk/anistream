@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Database (keep schema, ignore data)
+database/anime.db
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Uploads (if any large media)
+public/uploads/*.mp4
+public/uploads/*.mkv

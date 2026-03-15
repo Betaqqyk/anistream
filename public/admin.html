@@ -1,0 +1,455 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard — 02HUB</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            02HUB
+        </a>
+        <div class="nav-links">
+            <a href="/">หน้าแรก</a>
+            <a href="/admin.html" class="active">แดชบอร์ด</a>
+        </div>
+        <div class="nav-user" id="navUser"></div>
+    </div>
+</nav>
+
+<!-- ADMIN LAYOUT -->
+<div class="admin-layout">
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <div class="admin-nav-item active" onclick="switchAdminTab('anime', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16"><rect x="2" y="3" width="20" height="18" rx="3" stroke="currentColor" stroke-width="2" fill="none"/><polygon points="10 8 16 12 10 16" fill="currentColor"/></svg> จัดการอนิเมะ</div>
+        <div class="admin-nav-item" onclick="switchAdminTab('episodes', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16"><rect x="2" y="4" width="20" height="14" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="21" stroke="currentColor" stroke-width="2"/></svg> จัดการตอน</div>
+        <div class="admin-nav-item" onclick="switchAdminTab('genres', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="7" cy="7" r="1.5" fill="currentColor"/></svg> หมวดหมู่</div>
+        <div class="admin-nav-item" onclick="switchAdminTab('comments', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> คอมเมนต์</div>
+        <div class="admin-nav-item" onclick="switchAdminTab('users', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16"><circle cx="9" cy="7" r="4" stroke="currentColor" stroke-width="2" fill="none"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="19" cy="8" r="3" stroke="currentColor" stroke-width="2" fill="none"/><path d="M21 21v-2a3 3 0 00-2-2.83" stroke="currentColor" stroke-width="2" fill="none"/></svg> ผู้ใช้งาน</div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="admin-main">
+        <!-- ANIME TAB -->
+        <div class="admin-tab active" id="admin-anime">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-lg);">
+                <h1 style="font-size:var(--font-size-2xl);font-weight:700;"><svg class="icon" viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="3" width="20" height="18" rx="3" stroke="var(--accent-purple)" stroke-width="2" fill="none"/><polygon points="10 8 16 12 10 16" fill="var(--accent-purple)"/></svg> จัดการอนิเมะ</h1>
+                <button class="btn btn-primary" onclick="showAnimeModal()">+ เพิ่มอนิเมะ</button>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr><th>ภาพ</th><th>ชื่อ</th><th>ปี</th><th>สถานะ</th><th>คะแนน</th><th>สตูดิโอ</th><th>จัดการ</th></tr>
+                </thead>
+                <tbody id="animeTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- EPISODES TAB -->
+        <div class="admin-tab" id="admin-episodes" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-lg);">
+                <h1 style="font-size:var(--font-size-2xl);font-weight:700;"><svg class="icon" viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="4" width="20" height="14" rx="2" stroke="var(--accent-cyan)" stroke-width="2" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="21" stroke="var(--accent-cyan)" stroke-width="2"/></svg> จัดการตอน</h1>
+                <button class="btn btn-primary" onclick="showEpisodeModal()">+ เพิ่มตอน</button>
+            </div>
+            <div style="margin-bottom:var(--space-lg);">
+                <label style="font-size:var(--font-size-sm);color:var(--text-muted);margin-right:8px;">เลือกอนิเมะ:</label>
+                <select id="epAnimeSelect" onchange="loadAdminEpisodes(this.value)" style="padding:8px 12px;border-radius:var(--radius-md);background:var(--bg-tertiary);border:1px solid var(--border-color);color:var(--text-primary);">
+                    <option value="">-- เลือก --</option>
+                </select>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr><th>ตอน</th><th>ชื่อ</th><th>ความยาว</th><th>จัดการ</th></tr>
+                </thead>
+                <tbody id="episodeTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- GENRES TAB -->
+        <div class="admin-tab" id="admin-genres" style="display:none;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-lg);">
+                <h1 style="font-size:var(--font-size-2xl);font-weight:700;"><svg class="icon" viewBox="0 0 24 24" width="24" height="24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z" stroke="var(--accent-purple)" stroke-width="2" fill="none"/><circle cx="7" cy="7" r="1.5" fill="var(--accent-purple)"/></svg> หมวดหมู่</h1>
+            </div>
+            <div id="genresList" style="display:flex;flex-wrap:wrap;gap:var(--space-md);"></div>
+        </div>
+
+        <!-- COMMENTS TAB -->
+        <div class="admin-tab" id="admin-comments" style="display:none;">
+            <h1 style="font-size:var(--font-size-2xl);font-weight:700;margin-bottom:var(--space-lg);"><svg class="icon" viewBox="0 0 24 24" width="24" height="24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="var(--accent-blue)" stroke-width="2" fill="none"/></svg> คอมเมนต์ทั้งหมด</h1>
+            <table class="data-table">
+                <thead>
+                    <tr><th>ผู้ใช้</th><th>อนิเมะ</th><th>ตอน</th><th>เนื้อหา</th><th>วันที่</th><th>จัดการ</th></tr>
+                </thead>
+                <tbody id="commentsTableBody"></tbody>
+            </table>
+        </div>
+
+        <!-- USERS TAB -->
+        <div class="admin-tab" id="admin-users" style="display:none;">
+            <h1 style="font-size:var(--font-size-2xl);font-weight:700;margin-bottom:var(--space-lg);"><svg class="icon" viewBox="0 0 24 24" width="24" height="24"><circle cx="9" cy="7" r="4" stroke="var(--accent-purple)" stroke-width="2" fill="none"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2" stroke="var(--accent-purple)" stroke-width="2" fill="none"/><circle cx="19" cy="8" r="3" stroke="var(--accent-purple)" stroke-width="2" fill="none"/><path d="M21 21v-2a3 3 0 00-2-2.83" stroke="var(--accent-purple)" stroke-width="2" fill="none"/></svg> ผู้ใช้งาน</h1>
+            <table class="data-table">
+                <thead>
+                    <tr><th>Avatar</th><th>ชื่อผู้ใช้</th><th>อีเมล</th><th>บทบาท</th><th>วันที่สร้าง</th></tr>
+                </thead>
+                <tbody id="usersTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ ANIME MODAL ═══ -->
+<div class="modal-overlay" id="animeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="animeModalTitle">เพิ่มอนิเมะ</h2>
+            <button onclick="closeModal('animeModal')" style="font-size:20px;color:var(--text-muted);">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="animeForm" onsubmit="saveAnime(event)">
+                <input type="hidden" name="id" id="animeFormId">
+                <div class="form-group"><label>ชื่อ (ญี่ปุ่น/ไทย)</label><input type="text" name="title" required></div>
+                <div class="form-group"><label>ชื่อ (อังกฤษ)</label><input type="text" name="title_en"></div>
+                <div class="form-group"><label>เรื่องย่อ</label><textarea name="synopsis" rows="3"></textarea></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
+                    <div class="form-group"><label>ปีที่ฉาย</label><input type="number" name="year" min="1970" max="2030"></div>
+                    <div class="form-group"><label>ซีซั่น</label><select name="season"><option value="">--</option><option value="winter">Winter</option><option value="spring">Spring</option><option value="summer">Summer</option><option value="fall">Fall</option></select></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
+                    <div class="form-group"><label>สถานะ</label><select name="status"><option value="airing">กำลังฉาย</option><option value="completed">จบแล้ว</option><option value="upcoming">เร็วๆ นี้</option></select></div>
+                    <div class="form-group"><label>จำนวนตอน</label><input type="number" name="total_episodes" min="0"></div>
+                </div>
+                <div class="form-group"><label>สตูดิโอ</label><input type="text" name="studio"></div>
+                <div class="form-group"><label>คะแนน (0-10)</label><input type="number" name="rating" min="0" max="10" step="0.1"></div>
+                <div class="form-group"><label>URL ภาพปก</label><input type="url" name="cover_image"></div>
+                <div class="form-group"><label>URL ภาพแบนเนอร์</label><input type="url" name="banner_image"></div>
+                <div class="form-group"><label>URL Trailer</label><input type="url" name="trailer_url"></div>
+                <div class="modal-footer" style="padding:var(--space-lg) 0 0;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('animeModal')">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary">บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══ EPISODE MODAL ═══ -->
+<div class="modal-overlay" id="episodeModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2 id="epModalTitle">เพิ่มตอน</h2>
+            <button onclick="closeModal('episodeModal')" style="font-size:20px;color:var(--text-muted);">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="episodeForm" onsubmit="saveEpisode(event)">
+                <input type="hidden" name="id" id="epFormId">
+                <div class="form-group"><label>อนิเมะ</label><select name="anime_id" id="epFormAnimeId" required></select></div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
+                    <div class="form-group"><label>ตอนที่</label><input type="number" name="number" min="1" required></div>
+                    <div class="form-group"><label>ความยาว (วินาที)</label><input type="number" name="duration" min="0"></div>
+                </div>
+                <div class="form-group"><label>ชื่อตอน</label><input type="text" name="title"></div>
+                <div class="form-group"><label>URL Thumbnail</label><input type="url" name="thumbnail"></div>
+                <div class="form-group"><label>URL วิดีโอ</label><input type="url" name="video_url"></div>
+                <div class="modal-footer" style="padding:var(--space-lg) 0 0;">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('episodeModal')">ยกเลิก</button>
+                    <button type="submit" class="btn btn-primary">บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay auth-modal" id="authModal">
+    <div class="modal">
+        <div class="modal-header"><h2>เข้าสู่ระบบ Admin</h2><button onclick="closeAuthModal()" style="font-size:20px;color:var(--text-muted);">&times;</button></div>
+        <div class="modal-body">
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div>
+                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="loginRecaptcha"></div></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ</button>
+            </form>
+            <form id="registerForm" style="display:none"></form>
+        </div>
+    </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+    let adminAnimeList = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!currentUser || currentUser.role !== 'admin') {
+            showAuthModal();
+        }
+        loadAdminData();
+    });
+
+    async function loadAdminData() {
+        try {
+            const [anime, comments, genres] = await Promise.all([
+                api('/api/anime?limit=100'),
+                api('/api/comments'),
+                api('/api/anime/genres/all')
+            ]);
+            adminAnimeList = anime;
+            renderAnimeTable(anime);
+            renderCommentsTable(comments);
+            renderGenres(genres);
+            populateAnimeSelects(anime);
+
+            // Try loading users (may fail if no endpoint for all users yet)
+            try {
+                // For simplicity, just show current user
+                const usersBody = document.getElementById('usersTableBody');
+                if (currentUser) {
+                    usersBody.innerHTML = `<tr>
+                        <td><div style="width:32px;height:32px;border-radius:50%;background:var(--accent-purple);display:flex;align-items:center;justify-content:center;">${currentUser.username[0].toUpperCase()}</div></td>
+                        <td>${currentUser.username}</td>
+                        <td>${currentUser.email}</td>
+                        <td><span style="padding:3px 10px;border-radius:var(--radius-full);background:var(--accent-purple);font-size:11px;">${currentUser.role}</span></td>
+                        <td>${currentUser.created_at || '-'}</td>
+                    </tr>`;
+                }
+            } catch(e) {}
+        } catch (err) {
+            console.error('Admin load error:', err);
+        }
+    }
+
+    // ─── Switch tabs ───
+    function switchAdminTab(tab, el) {
+        document.querySelectorAll('.admin-nav-item').forEach(n => n.classList.remove('active'));
+        document.querySelectorAll('.admin-tab').forEach(t => t.style.display = 'none');
+        el.classList.add('active');
+        document.getElementById(`admin-${tab}`).style.display = 'block';
+    }
+
+    // ─── Anime CRUD ───
+    function renderAnimeTable(animeList) {
+        const tbody = document.getElementById('animeTableBody');
+        const statusLabel = { airing: '🔴 กำลังฉาย', completed: '✅ จบแล้ว', upcoming: '🔜 เร็วๆ นี้' };
+        tbody.innerHTML = animeList.map(a => `
+            <tr>
+                <td>${a.cover_image ? `<img class="thumb-sm" src="${a.cover_image}" onerror="this.style.background='var(--bg-tertiary)'">` : '-'}</td>
+                <td><strong>${a.title}</strong><br><span style="font-size:11px;color:var(--text-muted);">${a.title_en || ''}</span></td>
+                <td>${a.year || '-'}</td>
+                <td>${statusLabel[a.status] || a.status}</td>
+                <td>⭐ ${a.rating}</td>
+                <td>${a.studio || '-'}</td>
+                <td>
+                    <button class="btn btn-sm btn-secondary" onclick="editAnime(${a.id})">✏️</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAnime(${a.id})">🗑</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function showAnimeModal(anime = null) {
+        const form = document.getElementById('animeForm');
+        form.reset();
+        document.getElementById('animeFormId').value = '';
+        document.getElementById('animeModalTitle').textContent = anime ? 'แก้ไขอนิเมะ' : 'เพิ่มอนิเมะ';
+        if (anime) {
+            document.getElementById('animeFormId').value = anime.id;
+            form.title.value = anime.title || '';
+            form.title_en.value = anime.title_en || '';
+            form.synopsis.value = anime.synopsis || '';
+            form.year.value = anime.year || '';
+            form.season.value = anime.season || '';
+            form.status.value = anime.status || 'airing';
+            form.total_episodes.value = anime.total_episodes || '';
+            form.studio.value = anime.studio || '';
+            form.rating.value = anime.rating || '';
+            form.cover_image.value = anime.cover_image || '';
+            form.banner_image.value = anime.banner_image || '';
+            form.trailer_url.value = anime.trailer_url || '';
+        }
+        document.getElementById('animeModal').classList.add('active');
+    }
+
+    async function editAnime(id) {
+        try {
+            const anime = await api(`/api/anime/${id}`);
+            showAnimeModal(anime);
+        } catch (err) {
+            showToast('ไม่สามารถโหลดข้อมูลได้', 'error');
+        }
+    }
+
+    async function saveAnime(e) {
+        e.preventDefault();
+        const form = new FormData(e.target);
+        const data = Object.fromEntries(form.entries());
+        const id = data.id;
+        delete data.id;
+        if (data.year) data.year = parseInt(data.year);
+        if (data.total_episodes) data.total_episodes = parseInt(data.total_episodes);
+        if (data.rating) data.rating = parseFloat(data.rating);
+
+        try {
+            if (id) {
+                await api(`/api/anime/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+                showToast('อัปเดตอนิเมะสำเร็จ! ✅');
+            } else {
+                await api('/api/anime', { method: 'POST', body: JSON.stringify(data) });
+                showToast('เพิ่มอนิเมะสำเร็จ! 🎬');
+            }
+            closeModal('animeModal');
+            loadAdminData();
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    async function deleteAnime(id) {
+        if (!confirm('ยืนยันการลบอนิเมะนี้?')) return;
+        try {
+            await api(`/api/anime/${id}`, { method: 'DELETE' });
+            showToast('ลบอนิเมะสำเร็จ');
+            loadAdminData();
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    // ─── Episodes CRUD ───
+    function populateAnimeSelects(animeList) {
+        const selects = [document.getElementById('epAnimeSelect'), document.getElementById('epFormAnimeId')];
+        selects.forEach(sel => {
+            if (!sel) return;
+            const current = sel.value;
+            sel.innerHTML = '<option value="">-- เลือก --</option>' +
+                animeList.map(a => `<option value="${a.id}" ${a.id == current ? 'selected' : ''}>${a.title}</option>`).join('');
+        });
+    }
+
+    async function loadAdminEpisodes(animeId) {
+        if (!animeId) { document.getElementById('episodeTableBody').innerHTML = ''; return; }
+        try {
+            const eps = await api(`/api/episodes/anime/${animeId}`);
+            const tbody = document.getElementById('episodeTableBody');
+            tbody.innerHTML = eps.map(ep => `
+                <tr>
+                    <td>${ep.number}</td>
+                    <td>${ep.title || '-'}</td>
+                    <td>${ep.duration ? Math.floor(ep.duration / 60) + ' นาที' : '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick='editEpisode(${JSON.stringify(ep).replace(/'/g, "&#39;")})'>✏️</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteEpisode(${ep.id})">🗑</button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch (err) {
+            console.error('Load episodes error:', err);
+        }
+    }
+
+    function showEpisodeModal(ep = null) {
+        const form = document.getElementById('episodeForm');
+        form.reset();
+        document.getElementById('epFormId').value = '';
+        document.getElementById('epModalTitle').textContent = ep ? 'แก้ไขตอน' : 'เพิ่มตอน';
+        if (ep) {
+            document.getElementById('epFormId').value = ep.id;
+            form.anime_id.value = ep.anime_id;
+            form.number.value = ep.number;
+            form.title.value = ep.title || '';
+            form.duration.value = ep.duration || '';
+            form.thumbnail.value = ep.thumbnail || '';
+            form.video_url.value = ep.video_url || '';
+        }
+        document.getElementById('episodeModal').classList.add('active');
+    }
+
+    function editEpisode(ep) {
+        showEpisodeModal(ep);
+    }
+
+    async function saveEpisode(e) {
+        e.preventDefault();
+        const form = new FormData(e.target);
+        const data = Object.fromEntries(form.entries());
+        const id = data.id;
+        delete data.id;
+        data.anime_id = parseInt(data.anime_id);
+        data.number = parseInt(data.number);
+        if (data.duration) data.duration = parseInt(data.duration);
+
+        try {
+            if (id) {
+                await api(`/api/episodes/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+                showToast('อัปเดตตอนสำเร็จ! ✅');
+            } else {
+                await api('/api/episodes', { method: 'POST', body: JSON.stringify(data) });
+                showToast('เพิ่มตอนสำเร็จ! 📺');
+            }
+            closeModal('episodeModal');
+            loadAdminEpisodes(data.anime_id);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    async function deleteEpisode(id) {
+        if (!confirm('ยืนยันการลบตอนนี้?')) return;
+        try {
+            await api(`/api/episodes/${id}`, { method: 'DELETE' });
+            showToast('ลบตอนสำเร็จ');
+            const sel = document.getElementById('epAnimeSelect');
+            if (sel.value) loadAdminEpisodes(sel.value);
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    // ─── Comments ───
+    function renderCommentsTable(comments) {
+        const tbody = document.getElementById('commentsTableBody');
+        tbody.innerHTML = comments.map(c => `
+            <tr>
+                <td>${c.username}</td>
+                <td>${c.anime_title || '-'}</td>
+                <td>${c.episode_title || '-'}</td>
+                <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.content}</td>
+                <td style="white-space:nowrap;">${c.created_at ? new Date(c.created_at).toLocaleDateString('th-TH') : '-'}</td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteComment(${c.id})">🗑</button></td>
+            </tr>
+        `).join('');
+    }
+
+    async function deleteComment(id) {
+        if (!confirm('ยืนยันการลบคอมเมนต์?')) return;
+        try {
+            await api(`/api/comments/${id}`, { method: 'DELETE' });
+            showToast('ลบคอมเมนต์สำเร็จ');
+            loadAdminData();
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    }
+
+    // ─── Genres ───
+    function renderGenres(genres) {
+        const container = document.getElementById('genresList');
+        container.innerHTML = genres.map(g => `
+            <div style="padding:10px 18px;border-radius:var(--radius-full);background:var(--bg-tertiary);border:1px solid var(--border-color);font-size:var(--font-size-sm);">
+                ${g.name} <span style="color:var(--text-muted);font-size:11px;">(${g.slug})</span>
+            </div>
+        `).join('');
+    }
+
+    // ─── Modal helpers ───
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+</script>
+</body>
+</html>

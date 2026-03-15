@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="02HUB — อนิเมะกำลังฉายซีซั่นนี้ อัปเดตทุกสัปดาห์">
+    <title>กำลังฉาย — 02HUB</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs>
+                <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            02HUB
+        </a>
+        <div class="nav-links" id="navLinks">
+            <a href="/">หน้าแรก</a>
+            <a href="/search.html">ค้นหา</a>
+            <a href="/airing.html" class="active">กำลังฉาย</a>
+            <a href="/popular.html">ยอดนิยม</a>
+        </div>
+        <div class="nav-search">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="ค้นหาอนิเมะ..." autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="nav-user" id="navUser">
+            <button class="btn-login btn" onclick="showAuthModal()">เข้าสู่ระบบ</button>
+        </div>
+        <div class="nav-toggle" id="navToggle" onclick="toggleMobileNav()">
+            <span></span><span></span><span></span>
+        </div>
+    </div>
+</nav>
+
+<!-- HERO SECTION -->
+<section class="hero" style="min-height:300px;display:flex;align-items:center;">
+    <div class="hero-overlay" style="background:linear-gradient(135deg,rgba(0,212,255,0.15) 0%,rgba(7,11,14,0.95) 100%);"></div>
+    <div class="hero-content" style="position:relative;z-index:2;padding:120px 0 40px;">
+        <div class="container">
+            <h1 style="font-size:var(--font-size-4xl);font-weight:800;margin-bottom:var(--space-sm);">
+                <svg class="icon" viewBox="0 0 24 24" width="32" height="32"><circle cx="12" cy="12" r="6" fill="#ef4444"/><circle cx="12" cy="12" r="6" fill="#ef4444" opacity="0.5"><animate attributeName="r" values="6;12;6" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle></svg>
+                กำลังฉาย<span class="accent">ซีซั่นนี้</span>
+            </h1>
+            <p style="color:var(--text-secondary);font-size:var(--font-size-lg);max-width:600px;">
+                อนิเมะที่กำลังออกอากาศอยู่ในขณะนี้ อัปเดตตอนใหม่ทุกสัปดาห์
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<main class="container" style="padding:var(--space-xl) 0 var(--space-3xl);">
+    <div id="airingGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:var(--space-lg);"></div>
+    <div id="loadingSpinner" style="text-align:center;padding:60px 0;">
+        <div class="spinner"></div>
+        <p style="color:var(--text-muted);margin-top:var(--space-md);">กำลังโหลด...</p>
+    </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-brand">
+                <div class="logo"><svg viewBox="0 0 24 24" width="24" height="24" style="display:inline;vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="10" fill="url(#logoGrad)" opacity="0.2"/><polygon points="10 8 16 12 10 16" fill="url(#logoGrad)"/><defs><linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient></defs></svg>02HUB</div>
+                <p>แพลตฟอร์มดูอนิเมะออนไลน์ชั้นนำ ครบทุกเรื่อง ซับไทย พากย์ไทย</p>
+            </div>
+            <div class="footer-col">
+                <h4>เมนู</h4>
+                <a href="/">หน้าแรก</a>
+                <a href="/search.html">ค้นหา</a>
+                <a href="/airing.html">กำลังฉาย</a>
+                <a href="/popular.html">ยอดนิยม</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 02HUB. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay auth-modal" id="authModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>ยินดีต้อนรับสู่ 02HUB</h2>
+            <button onclick="closeAuthModal()" style="font-size:20px;color:var(--text-muted);">&times;</button>
+        </div>
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
+            <div class="auth-tab" onclick="switchAuthTab('register')">สมัครสมาชิก</div>
+        </div>
+        <div class="modal-body">
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div>
+                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="loginRecaptcha"></div></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ</button>
+            </form>
+            <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+                <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div>
+                <div class="form-group"><label>อีเมล</label><input type="email" name="email" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div>
+                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="registerRecaptcha"></div></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">สมัครสมาชิก</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const data = await api('/api/anime?status=airing&limit=50');
+        const list = data.data || data;
+        const grid = document.getElementById('airingGrid');
+        document.getElementById('loadingSpinner').style.display = 'none';
+
+        if (!list.length) {
+            grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;padding:60px 0;">ยังไม่มีอนิเมะกำลังฉายในขณะนี้</p>';
+            return;
+        }
+
+        grid.innerHTML = list.map(anime => renderAnimeCard(anime)).join('');
+    } catch (err) {
+        console.error('Failed to load airing anime:', err);
+        document.getElementById('loadingSpinner').innerHTML = '<p style="color:var(--accent-red);">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>';
+    }
+});
+</script>
+</body>
+</html>

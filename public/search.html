@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ค้นหาอนิเมะ — 02HUB</title>
+    <meta name="description" content="ค้นหาอนิเมะ กรองตามหมวดหมู่ ปีที่ฉาย สถานะ และสตูดิโอ">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            02HUB
+        </a>
+        <div class="nav-links">
+            <a href="/">หน้าแรก</a>
+            <a href="/search.html" class="active">ค้นหา</a>
+            <a href="/airing.html">กำลังฉาย</a>
+            <a href="/popular.html">ยอดนิยม</a>
+        </div>
+        <div class="nav-user" id="navUser"></div>
+        <div class="nav-toggle" onclick="toggleMobileNav()"><span></span><span></span><span></span></div>
+    </div>
+</nav>
+
+<!-- SEARCH PAGE -->
+<div class="search-page">
+    <div class="container">
+        <!-- Big search -->
+        <div style="position:relative;max-width:700px;margin:0 auto var(--space-xl);">
+            <svg style="position:absolute;left:18px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" class="search-hero-input" id="mainSearchInput" placeholder="ค้นหาอนิเมะตามชื่อ..." autocomplete="off">
+        </div>
+
+        <div class="search-layout">
+            <!-- SIDEBAR FILTERS -->
+            <aside class="search-sidebar">
+                <div class="filter-group">
+                    <div class="filter-title">หมวดหมู่ (Genre)</div>
+                    <div class="filter-options" id="genreFilters"></div>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">สถานะ</div>
+                    <div class="filter-options">
+                        <div class="filter-option" data-filter="status" data-value="" onclick="setFilter('status', '', this)">ทั้งหมด</div>
+                        <div class="filter-option" data-filter="status" data-value="airing" onclick="setFilter('status', 'airing', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="6" fill="#ef4444"/><circle cx="12" cy="12" r="6" fill="#ef4444" opacity="0.5"><animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle></svg> กำลังฉาย</div>
+                        <div class="filter-option" data-filter="status" data-value="completed" onclick="setFilter('status', 'completed', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" fill="#22c55e"/><path d="M8 12l3 3 5-6" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg> จบแล้ว</div>
+                        <div class="filter-option" data-filter="status" data-value="upcoming" onclick="setFilter('status', 'upcoming', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><circle cx="12" cy="12" r="10" fill="#0ea5e9"/><path d="M12 7v5l3 3" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/></svg> เร็วๆ นี้</div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">ปีที่ฉาย</div>
+                    <div class="filter-options" id="yearFilters">
+                        <div class="filter-option" data-filter="year" data-value="" onclick="setFilter('year', '', this)">ทั้งหมด</div>
+                        <div class="filter-option" data-filter="year" data-value="2025" onclick="setFilter('year', '2025', this)">2025</div>
+                        <div class="filter-option" data-filter="year" data-value="2024" onclick="setFilter('year', '2024', this)">2024</div>
+                        <div class="filter-option" data-filter="year" data-value="2023" onclick="setFilter('year', '2023', this)">2023</div>
+                        <div class="filter-option" data-filter="year" data-value="2022" onclick="setFilter('year', '2022', this)">2022</div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <div class="filter-title">เรียงตาม</div>
+                    <div class="filter-options">
+                        <div class="filter-option active" data-filter="sort" data-value="rating" onclick="setFilter('sort', 'rating', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="#facc15"/></svg> คะแนนสูงสุด</div>
+                        <div class="filter-option" data-filter="sort" data-value="latest" onclick="setFilter('sort', 'latest', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><rect x="2" y="2" width="20" height="20" rx="4" fill="#22c55e"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="9" font-weight="bold">NEW</text></svg> ใหม่ล่าสุด</div>
+                        <div class="filter-option" data-filter="sort" data-value="title" onclick="setFilter('sort', 'title', this)">🔤 ตามชื่อ</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- RESULTS -->
+            <div class="search-main">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-lg);">
+                    <h2 id="searchResultTitle" style="font-size:var(--font-size-lg);font-weight:600;">ผลลัพธ์ทั้งหมด</h2>
+                    <span id="resultCount" style="color:var(--text-muted);font-size:var(--font-size-sm);"></span>
+                </div>
+                <div class="search-results-grid" id="searchGrid"></div>
+                <div id="loadingState" style="text-align:center;padding:40px;">
+                    <div class="skeleton" style="width:100%;height:300px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AUTH MODAL (same as index) -->
+<div class="modal-overlay auth-modal" id="authModal">
+    <div class="modal">
+        <div class="modal-header"><h2>ยินดีต้อนรับสู่ 02HUB</h2><button onclick="closeAuthModal()" style="font-size:20px;color:var(--text-muted);">&times;</button></div>
+        <div class="auth-tabs"><div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div><div class="auth-tab" onclick="switchAuthTab('register')">สมัครสมาชิก</div></div>
+        <div class="modal-body">
+            <form id="loginForm" onsubmit="handleLogin(event)"><div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div><div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div><div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="loginRecaptcha"></div></div><button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ</button></form>
+            <form id="registerForm" style="display:none" onsubmit="handleRegister(event)"><div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div><div class="form-group"><label>อีเมล</label><input type="email" name="email" required></div><div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div><div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="registerRecaptcha"></div></div><button type="submit" class="btn btn-primary" style="width:100%">สมัครสมาชิก</button></form>
+        </div>
+    </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+    let filters = { search: '', genre: '', status: '', year: '', sort: 'rating' };
+    let searchDebounce;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Parse URL params
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('q')) filters.search = params.get('q');
+        if (params.get('genre')) filters.genre = params.get('genre');
+        if (params.get('status')) filters.status = params.get('status');
+        if (params.get('year')) filters.year = params.get('year');
+        if (params.get('sort')) filters.sort = params.get('sort');
+
+        document.getElementById('mainSearchInput').value = filters.search;
+
+        // Highlight active filters
+        highlightActiveFilters();
+        loadGenres();
+        searchAnime();
+    });
+
+    // Search input
+    document.getElementById('mainSearchInput').addEventListener('input', (e) => {
+        clearTimeout(searchDebounce);
+        filters.search = e.target.value.trim();
+        searchDebounce = setTimeout(searchAnime, 400);
+    });
+
+    async function loadGenres() {
+        try {
+            const genres = await api('/api/anime/genres/all');
+            const container = document.getElementById('genreFilters');
+            container.innerHTML = `
+                <div class="filter-option ${!filters.genre ? 'active' : ''}" data-filter="genre" data-value="" onclick="setFilter('genre', '', this)">ทั้งหมด</div>
+                ${genres.map(g => `
+                    <div class="filter-option ${filters.genre === g.slug ? 'active' : ''}" data-filter="genre" data-value="${g.slug}" onclick="setFilter('genre', '${g.slug}', this)">${g.name}</div>
+                `).join('')}
+            `;
+        } catch (err) {
+            console.error('Load genres error:', err);
+        }
+    }
+
+    function setFilter(key, value, el) {
+        filters[key] = value;
+        // Toggle active class within same group
+        const siblings = el.parentElement.querySelectorAll('.filter-option');
+        siblings.forEach(s => s.classList.remove('active'));
+        el.classList.add('active');
+        searchAnime();
+    }
+
+    function highlightActiveFilters() {
+        document.querySelectorAll('.filter-option').forEach(opt => {
+            const filterKey = opt.dataset.filter;
+            const filterVal = opt.dataset.value;
+            if (filterKey && filters[filterKey] === filterVal) {
+                opt.classList.add('active');
+            }
+        });
+    }
+
+    async function searchAnime() {
+        const grid = document.getElementById('searchGrid');
+        const loading = document.getElementById('loadingState');
+        loading.style.display = 'block';
+        grid.innerHTML = '';
+
+        try {
+            const params = new URLSearchParams();
+            if (filters.search) params.set('search', filters.search);
+            if (filters.genre) params.set('genre', filters.genre);
+            if (filters.status) params.set('status', filters.status);
+            if (filters.year) params.set('year', filters.year);
+            if (filters.sort) params.set('sort', filters.sort);
+            params.set('limit', '40');
+
+            const results = await api(`/api/anime?${params.toString()}`);
+            loading.style.display = 'none';
+            document.getElementById('resultCount').textContent = `${results.length} ผลลัพธ์`;
+
+            if (filters.search) {
+                document.getElementById('searchResultTitle').textContent = `ผลลัพธ์สำหรับ "${filters.search}"`;
+            } else {
+                document.getElementById('searchResultTitle').textContent = 'ผลลัพธ์ทั้งหมด';
+            }
+
+            if (results.length === 0) {
+                grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text-muted);font-size:var(--font-size-lg);">🔍 ไม่พบผลลัพธ์ ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>';
+                return;
+            }
+
+            results.forEach(anime => {
+                grid.appendChild(createAnimeCard(anime));
+            });
+
+        } catch (err) {
+            loading.style.display = 'none';
+            console.error('Search error:', err);
+            grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--accent-red);">เกิดข้อผิดพลาด โปรดลองอีกครั้ง</p>';
+        }
+    }
+</script>
+</body>
+</html>

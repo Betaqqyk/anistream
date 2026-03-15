@@ -1,0 +1,239 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายละเอียดอนิเมะ — 02HUB</title>
+    <meta name="description" content="ดูรายละเอียดอนิเมะ ตอนทั้งหมด เรตติ้ง และรีวิว">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs>
+                <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            02HUB
+        </a>
+        <div class="nav-links">
+            <a href="/">หน้าแรก</a>
+            <a href="/search.html">ค้นหา</a>
+            <a href="/airing.html">กำลังฉาย</a>
+            <a href="/popular.html">ยอดนิยม</a>
+        </div>
+        <div class="nav-search">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="ค้นหาอนิเมะ..." autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="nav-user" id="navUser"></div>
+        <div class="nav-toggle" onclick="toggleMobileNav()"><span></span><span></span><span></span></div>
+    </div>
+</nav>
+
+<!-- DETAIL HERO -->
+<section class="detail-hero" id="detailHero">
+    <img src="" alt="" id="heroBanner">
+    <div class="overlay"></div>
+</section>
+
+<!-- DETAIL CONTENT -->
+<div class="detail-content">
+    <div class="container">
+        <div class="detail-layout">
+            <div class="detail-poster">
+                <img src="" alt="" id="posterImg">
+            </div>
+            <div class="detail-info">
+                <h1 class="detail-title" id="animeTitle"></h1>
+                <p class="detail-title-en" id="animeTitleEn"></p>
+
+                <div class="detail-stats" id="animeStats"></div>
+
+                <div class="genre-tags" id="genreTags"></div>
+
+                <p class="detail-synopsis" id="animeSynopsis"></p>
+
+                <div class="detail-actions">
+                    <button class="btn btn-primary" id="watchBtn" onclick="watchFirstEpisode()">
+                        ▶ ดูตอนแรก
+                    </button>
+                    <button class="btn btn-secondary" id="watchlistBtn">
+                        + เพิ่มในรายการ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- EPISODES -->
+        <section class="section" id="episodesSection">
+            <div class="section-header">
+                <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="4" width="20" height="14" rx="2" stroke="var(--accent-cyan)" stroke-width="2" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="21" stroke="var(--accent-cyan)" stroke-width="2"/></svg> รายชื่อ<span class="accent">ตอน</span></h2>
+                <div class="view-toggle">
+                    <button class="active" onclick="setEpView('grid', this)">▦</button>
+                    <button onclick="setEpView('list', this)">☰</button>
+                </div>
+            </div>
+            <div class="episodes-grid" id="episodesGrid"></div>
+        </section>
+
+        <!-- RELATED -->
+        <section class="section" id="relatedSection">
+            <div class="section-header">
+                <h2 class="section-title">💫 อนิเมะ<span class="accent">ที่คล้ายกัน</span></h2>
+            </div>
+            <div class="slider-wrapper">
+                <button class="slider-btn prev" onclick="slideScroll('relatedSlider', -1)">‹</button>
+                <div class="slider" id="relatedSlider"></div>
+                <button class="slider-btn next" onclick="slideScroll('relatedSlider', 1)">›</button>
+            </div>
+        </section>
+    </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+    <div class="container">
+        <div class="footer-bottom">
+            <p>&copy; 2025 02HUB. All rights reserved. Made with 💜 for anime fans.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="/js/app.js"></script>
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const animeId = params.get('id');
+    let animeData = null;
+    let episodes = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (animeId) loadAnimeDetail(animeId);
+    });
+
+    async function loadAnimeDetail(id) {
+        try {
+            animeData = await api(`/api/anime/${id}`);
+            document.title = `${animeData.title} — 02HUB`;
+
+            // Hero
+            document.getElementById('heroBanner').src = animeData.banner_image || animeData.cover_image;
+            document.getElementById('posterImg').src = animeData.cover_image;
+            document.getElementById('posterImg').alt = animeData.title;
+
+            // Info
+            document.getElementById('animeTitle').textContent = animeData.title;
+            document.getElementById('animeTitleEn').textContent = animeData.title_en || '';
+            document.getElementById('animeSynopsis').textContent = animeData.synopsis || '';
+
+            // Stats
+            const statusLabel = { airing: '<svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" style="display:inline;vertical-align:middle;"><circle cx="12" cy="12" r="6" fill="#ef4444"/></svg> กำลังฉาย', completed: '<svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" style="display:inline;vertical-align:middle;"><circle cx="12" cy="12" r="10" fill="#22c55e"/><path d="M8 12l3 3 5-6" stroke="white" stroke-width="2.5" fill="none"/></svg> จบแล้ว', upcoming: '<svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" style="display:inline;vertical-align:middle;"><circle cx="12" cy="12" r="10" fill="#0ea5e9"/><path d="M12 7v5l3 3" stroke="white" stroke-width="2" fill="none"/></svg> เร็วๆ นี้' };
+            document.getElementById('animeStats').innerHTML = `
+                <span class="stat-item rating"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14" style="display:inline;vertical-align:middle;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="#facc15"/></svg> ${animeData.rating}</span>
+                <span class="stat-item">${statusLabel[animeData.status] || animeData.status}</span>
+                <span class="stat-item">📅 ${animeData.year || 'N/A'}</span>
+                <span class="stat-item"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14" style="display:inline;vertical-align:middle;"><rect x="2" y="3" width="20" height="18" rx="3" stroke="var(--text-muted)" stroke-width="2" fill="none"/><polygon points="10 8 16 12 10 16" fill="var(--text-muted)"/></svg> ${animeData.studio || 'N/A'}</span>
+                <span class="stat-item"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14" style="display:inline;vertical-align:middle;"><rect x="2" y="4" width="20" height="14" rx="2" stroke="var(--text-muted)" stroke-width="2" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="var(--text-muted)" stroke-width="2" stroke-linecap="round"/></svg> ${animeData.total_episodes || '?'} ตอน</span>
+            `;
+
+            // Genres
+            if (animeData.genres && animeData.genres.length) {
+                document.getElementById('genreTags').innerHTML = animeData.genres.map(g =>
+                    `<a href="/search.html?genre=${g.slug}" class="genre-tag">${g.name}</a>`
+                ).join('');
+            }
+
+            // Watchlist button
+            document.getElementById('watchlistBtn').onclick = () => addToWatchlist(animeData.id);
+
+            // Load episodes
+            loadEpisodes(id);
+
+            // Load related
+            loadRelated(id);
+
+        } catch (err) {
+            console.error('Failed to load anime:', err);
+            document.querySelector('.detail-info').innerHTML = '<p style="color:var(--text-muted);padding:40px 0;">ไม่พบข้อมูลอนิเมะนี้</p>';
+        }
+    }
+
+    async function loadEpisodes(animeId) {
+        try {
+            const userId = currentUser ? currentUser.id : 0;
+            episodes = await api(`/api/episodes/anime/${animeId}?user_id=${userId}`);
+            renderEpisodes();
+        } catch (err) {
+            console.error('Failed to load episodes:', err);
+        }
+    }
+
+    function renderEpisodes() {
+        const grid = document.getElementById('episodesGrid');
+        if (!episodes.length) {
+            grid.innerHTML = '<p style="color:var(--text-muted);padding:20px 0;">ยังไม่มีตอนให้ดู</p>';
+            return;
+        }
+        grid.innerHTML = episodes.map(ep => {
+            const progress = ep.duration > 0 ? Math.round((ep.progress || 0) / ep.duration * 100) : 0;
+            const durMin = Math.floor((ep.duration || 0) / 60);
+            return `
+                <div class="episode-card" onclick="window.location.href='/watch.html?anime_id=${animeId}&ep=${ep.number}'">
+                    <div class="ep-thumb">
+                        ${ep.thumbnail
+                            ? `<img src="${ep.thumbnail}" alt="EP ${ep.number}">`
+                            : `<div style="width:100%;height:100%;background:var(--bg-tertiary);display:flex;align-items:center;justify-content:center;font-size:2rem;color:var(--text-muted);">▶</div>`}
+                        <div class="ep-play">
+                            <div style="width:48px;height:48px;border-radius:50%;background:var(--accent-purple);display:flex;align-items:center;justify-content:center;font-size:18px;">▶</div>
+                        </div>
+                        ${durMin ? `<span class="ep-duration">${durMin} นาที</span>` : ''}
+                        ${progress > 0 ? `<div class="ep-progress" style="width:${progress}%"></div>` : ''}
+                    </div>
+                    <div class="ep-info">
+                        <div class="ep-number">ตอนที่ ${ep.number}</div>
+                        <div class="ep-title">${ep.title || `Episode ${ep.number}`}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function setEpView(view, btn) {
+        const grid = document.getElementById('episodesGrid');
+        document.querySelectorAll('.view-toggle button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        if (view === 'list') {
+            grid.style.gridTemplateColumns = '1fr';
+        } else {
+            grid.style.gridTemplateColumns = '';
+        }
+    }
+
+    async function loadRelated(id) {
+        try {
+            const related = await api(`/api/anime/${id}/related`);
+            const slider = document.getElementById('relatedSlider');
+            slider.innerHTML = '';
+            if (related.length === 0) {
+                document.getElementById('relatedSection').style.display = 'none';
+                return;
+            }
+            related.forEach(a => slider.appendChild(createAnimeCard(a)));
+        } catch (err) {
+            console.error('Failed to load related:', err);
+        }
+    }
+
+    function watchFirstEpisode() {
+        if (episodes.length > 0) {
+            window.location.href = `/watch.html?anime_id=${animeId}&ep=1`;
+        }
+    }
+</script>
+</body>
+</html>

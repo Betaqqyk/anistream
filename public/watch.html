@@ -1,0 +1,135 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>กำลังดู — 02HUB</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            02HUB
+        </a>
+        <div class="nav-links">
+            <a href="/">หน้าแรก</a>
+            <a href="/search.html">ค้นหา</a>
+        </div>
+        <div class="nav-search">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="ค้นหาอนิเมะ..." autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="nav-user" id="navUser"></div>
+    </div>
+</nav>
+
+<!-- PLAYER -->
+<div style="padding-top: var(--navbar-height);">
+    <div class="player-container" id="playerContainer">
+        <div class="video-wrapper" id="videoWrapper">
+            <video id="videoPlayer" preload="metadata">
+                <source src="" type="video/mp4">
+            </video>
+
+            <!-- Big center play -->
+            <div id="bigPlayBtn" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;" onclick="togglePlay()">
+                <div style="width:72px;height:72px;border-radius:50%;background:var(--accent-purple);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 40px var(--accent-purple-glow);transition:transform 0.2s;">▶</div>
+            </div>
+
+            <!-- Skip Intro -->
+            <button class="skip-intro-btn" id="skipIntroBtn" onclick="skipIntro()">ข้าม Intro ›</button>
+
+            <!-- Controls -->
+            <div class="video-controls" id="videoControls">
+                <!-- Progress bar -->
+                <div class="progress-bar" id="progressBar" onclick="seekVideo(event)">
+                    <div class="progress-buffer" id="progressBuffer" style="width:0%"></div>
+                    <div class="progress-filled" id="progressFilled" style="width:0%"></div>
+                </div>
+
+                <div class="controls-row">
+                    <div class="controls-left">
+                        <button class="control-btn" id="playPauseBtn" onclick="togglePlay()" title="เล่น/หยุด">▶</button>
+                        <button class="control-btn" onclick="skipEpisode(-1)" title="ตอนก่อนหน้า">⏮</button>
+                        <button class="control-btn" onclick="skipEpisode(1)" title="ตอนถัดไป">⏭</button>
+                        <button class="control-btn" id="muteBtn" onclick="toggleMute()" title="เสียง">🔊</button>
+                        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)">
+                        <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
+                    </div>
+                    <div class="controls-right">
+                        <button class="control-btn" onclick="toggleSubMenu('qualityMenu')" title="ความละเอียด">⚙</button>
+                        <button class="control-btn" onclick="toggleSubMenu('subMenu')" title="ซับไตเติ้ล">CC</button>
+                        <button class="control-btn" onclick="toggleTheater()" title="โหมดโรงภาพยนตร์">🖥</button>
+                        <button class="control-btn" onclick="toggleFullscreen()" title="เต็มจอ" id="fullscreenBtn">⛶</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quality Menu -->
+            <div class="settings-menu" id="qualityMenu">
+                <div class="menu-title">ความละเอียด</div>
+                <div class="menu-item active" onclick="setQuality('1080p', this)">1080p HD</div>
+                <div class="menu-item" onclick="setQuality('720p', this)">720p</div>
+                <div class="menu-item" onclick="setQuality('480p', this)">480p</div>
+                <div class="menu-item" onclick="setQuality('360p', this)">360p</div>
+            </div>
+
+            <!-- Subtitle Menu -->
+            <div class="settings-menu" id="subMenu">
+                <div class="menu-title">ซับไตเติ้ล / พากย์</div>
+                <div class="menu-item active" onclick="setSub('th-sub', this)">ซับไทย</div>
+                <div class="menu-item" onclick="setSub('th-dub', this)">พากย์ไทย</div>
+                <div class="menu-item" onclick="setSub('none', this)">ปิด</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Episode Info + Nav -->
+    <div class="container" style="padding:var(--space-lg) var(--space-xl);">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-md);margin-bottom:var(--space-lg);">
+            <div>
+                <h1 id="epAnimeTitle" style="font-size:var(--font-size-xl);font-weight:700;margin-bottom:4px;"></h1>
+                <p id="epTitle" style="font-size:var(--font-size-lg);color:var(--text-secondary);"></p>
+            </div>
+            <div style="display:flex;gap:var(--space-sm);">
+                <button class="btn btn-secondary btn-sm" onclick="skipEpisode(-1)">← ตอนก่อนหน้า</button>
+                <button class="btn btn-primary btn-sm" onclick="skipEpisode(1)">ตอนถัดไป →</button>
+            </div>
+        </div>
+
+        <!-- Episode Selector -->
+        <div style="margin-bottom:var(--space-xl);">
+            <h3 style="font-size:var(--font-size-base);font-weight:600;margin-bottom:var(--space-md);"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16" style="display:inline;vertical-align:middle;"><rect x="2" y="4" width="20" height="14" rx="2" stroke="var(--accent-cyan)" stroke-width="2" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="21" stroke="var(--accent-cyan)" stroke-width="2"/></svg> เลือกตอน</h3>
+            <div id="epSelector" style="display:flex;flex-wrap:wrap;gap:var(--space-sm);"></div>
+        </div>
+
+        <!-- Comments -->
+        <div class="comments-section" style="padding:0;">
+            <h3 style="font-size:var(--font-size-base);font-weight:600;margin-bottom:var(--space-lg);"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16" style="display:inline;vertical-align:middle;"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="var(--accent-blue)" stroke-width="2" fill="none"/></svg> ความคิดเห็น</h3>
+
+            <div class="comment-form" id="commentForm">
+                <img class="avatar" src="" id="commentAvatar" alt=""
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%231a1a2e%22 width=%2240%22 height=%2240%22/><text x=%2250%%22 y=%2255%%22 text-anchor=%22middle%22 fill=%22%23a855f7%22 font-size=%2218%22>?</text></svg>'">
+                <div style="flex:1;">
+                    <textarea id="commentText" placeholder="แสดงความคิดเห็น..."></textarea>
+                    <div style="text-align:right;margin-top:var(--space-sm);">
+                        <button class="btn btn-primary btn-sm" onclick="postComment()">ส่ง</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="commentsList"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script src="/js/player.js"></script>
+</body>
+</html>
