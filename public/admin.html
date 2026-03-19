@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -245,8 +245,8 @@
                 <td>⭐ ${a.rating}</td>
                 <td>${a.studio || '-'}</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary" onclick="editAnime(${a.id})">✏️</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteAnime(${a.id})">🗑</button>
+                    <button class="btn btn-sm btn-secondary" onclick="editAnime('${a.id}')">✏️</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAnime('${a.id}')">🗑</button>
                 </td>
             </tr>
         `).join('');
@@ -343,7 +343,7 @@
                     <td>${ep.duration ? Math.floor(ep.duration / 60) + ' นาที' : '-'}</td>
                     <td>
                         <button class="btn btn-sm btn-secondary" onclick='editEpisode(${JSON.stringify(ep).replace(/'/g, "&#39;")})'>✏️</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteEpisode(${ep.id})">🗑</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteEpisode('${ep.id}')">🗑</button>
                     </td>
                 </tr>
             `).join('');
@@ -379,7 +379,7 @@
         const data = Object.fromEntries(form.entries());
         const id = data.id;
         delete data.id;
-        data.anime_id = parseInt(data.anime_id);
+        // anime_id is now a MongoDB ObjectId string, no parseInt needed
         data.number = parseInt(data.number);
         if (data.duration) data.duration = parseInt(data.duration);
 
@@ -420,7 +420,7 @@
                 <td>${c.episode_title || '-'}</td>
                 <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.content}</td>
                 <td style="white-space:nowrap;">${c.created_at ? new Date(c.created_at).toLocaleDateString('th-TH') : '-'}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteComment(${c.id})">🗑</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteComment('${c.id}')">🗑</button></td>
             </tr>
         `).join('');
     }

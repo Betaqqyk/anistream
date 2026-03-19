@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -143,9 +143,11 @@
 
             // Genres
             if (animeData.genres && animeData.genres.length) {
-                document.getElementById('genreTags').innerHTML = animeData.genres.map(g =>
-                    `<a href="/search.html?genre=${g.slug}" class="genre-tag">${g.name}</a>`
-                ).join('');
+                document.getElementById('genreTags').innerHTML = animeData.genres.map(g => {
+                    const slug = typeof g === 'string' ? g : g.slug;
+                    const name = typeof g === 'string' ? g.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) : g.name;
+                    return `<a href="/search.html?genre=${slug}" class="genre-tag">${name}</a>`;
+                }).join('');
             }
 
             // Watchlist button

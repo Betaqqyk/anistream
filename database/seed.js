@@ -1,43 +1,43 @@
-const { getDbAsync } = require('./db');
+require('dotenv').config();
+const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { connectDB } = require('./db');
+
+// Models
+const Anime = require('../models/Anime');
+const Episode = require('../models/Episode');
+const User = require('../models/User');
+const Comment = require('../models/Comment');
+const WatchHistory = require('../models/WatchHistory');
+const Watchlist = require('../models/Watchlist');
 
 async function seed() {
-    const db = await getDbAsync();
-
+    await connectDB();
     console.log('🌱 Seeding database...');
 
-    // --- Genres ---
-    const genres = [
-        { name: 'Action', slug: 'action' },
-        { name: 'Adventure', slug: 'adventure' },
-        { name: 'Comedy', slug: 'comedy' },
-        { name: 'Drama', slug: 'drama' },
-        { name: 'Fantasy', slug: 'fantasy' },
-        { name: 'Horror', slug: 'horror' },
-        { name: 'Mecha', slug: 'mecha' },
-        { name: 'Music', slug: 'music' },
-        { name: 'Mystery', slug: 'mystery' },
-        { name: 'Psychological', slug: 'psychological' },
-        { name: 'Romance', slug: 'romance' },
-        { name: 'Sci-Fi', slug: 'sci-fi' },
-        { name: 'Slice of Life', slug: 'slice-of-life' },
-        { name: 'Sports', slug: 'sports' },
-        { name: 'Supernatural', slug: 'supernatural' },
-        { name: 'Thriller', slug: 'thriller' },
-        { name: 'Isekai', slug: 'isekai' },
-        { name: 'Shounen', slug: 'shounen' },
-        { name: 'Shoujo', slug: 'shoujo' },
-        { name: 'Seinen', slug: 'seinen' }
-    ];
-
-    const genreStmt = db.prepare('INSERT OR IGNORE INTO genres (name, slug) VALUES (?, ?)');
-    genres.forEach(g => genreStmt.run(g.name, g.slug));
+    // Clear existing data
+    await Promise.all([
+        Anime.deleteMany({}),
+        Episode.deleteMany({}),
+        User.deleteMany({}),
+        Comment.deleteMany({}),
+        WatchHistory.deleteMany({}),
+        Watchlist.deleteMany({})
+    ]);
 
     // --- Demo users ---
-    const passwordHash = bcrypt.hashSync('demo123', 10);
-    const userStmt = db.prepare('INSERT OR IGNORE INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)');
-    userStmt.run('demo', 'demo@anistream.com', passwordHash, 'user');
-    userStmt.run('admin', 'admin@anistream.com', bcrypt.hashSync('admin123', 10), 'admin');
+    const demoUser = await User.create({
+        username: 'demo',
+        email: 'demo@anistream.com',
+        password_hash: bcrypt.hashSync('demo123', 10),
+        role: 'user'
+    });
+    const adminUser = await User.create({
+        username: 'admin',
+        email: 'admin@anistream.com',
+        password_hash: bcrypt.hashSync('admin123', 10),
+        role: 'admin'
+    });
 
     // --- Sample Anime ---
     const animeData = [
@@ -223,77 +223,58 @@ async function seed() {
         }
     ];
 
-    const animeStmt = db.prepare(
-        `INSERT OR IGNORE INTO anime (title, title_en, synopsis, cover_image, banner_image, trailer_url, rating, status, year, season, studio, total_episodes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    );
-    const animeGenreStmt = db.prepare('INSERT OR IGNORE INTO anime_genres (anime_id, genre_id) VALUES (?, ?)');
-    const findGenre = db.prepare('SELECT id FROM genres WHERE slug = ?');
+    const animeList = await Anime.insertMany(animeData);
+    console.log(`  ✅ ${animeList.length} anime inserted`);
 
-    animeData.forEach(a => {
-        const result = animeStmt.run(
-            a.title, a.title_en, a.synopsis, a.cover_image, a.banner_image,
-            a.trailer_url, a.rating, a.status, a.year, a.season, a.studio, a.total_episodes
-        );
-        if (result.changes > 0) {
-            const animeId = result.lastInsertRowid;
-            a.genres.forEach(slug => {
-                const genre = findGenre.get(slug);
-                if (genre) animeGenreStmt.run(animeId, genre.id);
+    // --- Sample Episodes (first 5 anime) ---
+    const sampleVideo = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
+    const episodeData = [];
+    for (let i = 0; i < Math.min(5, animeList.length); i++) {
+        const epCount = i <= 1 ? 12 : (i === 4 ? 6 : 8);
+        for (let ep = 1; ep <= epCount; ep++) {
+            episodeData.push({
+                anime_id: animeList[i]._id,
+                number: ep,
+                title: `ตอนที่ ${ep}`,
+                thumbnail: '',
+                video_url: sampleVideo,
+                duration: 1440
             });
         }
-    });
-
-    // --- Sample Episodes ---
-    const epStmt = db.prepare(
-        `INSERT OR IGNORE INTO episodes (anime_id, number, title, thumbnail, video_url, duration)
-         VALUES (?, ?, ?, ?, ?, ?)`
-    );
-
-    const sampleVideo = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-    for (let animeId = 1; animeId <= 5; animeId++) {
-        const epCount = animeId <= 2 ? 12 : (animeId === 5 ? 6 : 8);
-        for (let ep = 1; ep <= epCount; ep++) {
-            epStmt.run(
-                animeId, ep,
-                `ตอนที่ ${ep}`,
-                '',
-                sampleVideo,
-                1440
-            );
-        }
     }
+    const episodes = await Episode.insertMany(episodeData);
+    console.log(`  ✅ ${episodes.length} episodes inserted`);
 
-    // Add some watch history for demo user
-    const histStmt = db.prepare(
-        `INSERT OR IGNORE INTO watch_history (user_id, episode_id, progress_seconds, completed)
-         VALUES (?, ?, ?, ?)`
-    );
-    histStmt.run(1, 1, 1440, 1);
-    histStmt.run(1, 2, 1440, 1);
-    histStmt.run(1, 3, 724, 0);
+    // --- Watch history for demo user ---
+    await WatchHistory.insertMany([
+        { user_id: demoUser._id, episode_id: episodes[0]._id, progress_seconds: 1440, completed: true },
+        { user_id: demoUser._id, episode_id: episodes[1]._id, progress_seconds: 1440, completed: true },
+        { user_id: demoUser._id, episode_id: episodes[2]._id, progress_seconds: 724, completed: false }
+    ]);
+    console.log('  ✅ Watch history seeded');
 
-    // Add watchlist entries
-    const wlStmt = db.prepare(
-        `INSERT OR IGNORE INTO watchlist (user_id, anime_id, status) VALUES (?, ?, ?)`
-    );
-    wlStmt.run(1, 1, 'watching');
-    wlStmt.run(1, 3, 'want');
-    wlStmt.run(1, 4, 'completed');
-    wlStmt.run(1, 8, 'want');
+    // --- Watchlist ---
+    await Watchlist.insertMany([
+        { user_id: demoUser._id, anime_id: animeList[0]._id, status: 'watching' },
+        { user_id: demoUser._id, anime_id: animeList[2]._id, status: 'want' },
+        { user_id: demoUser._id, anime_id: animeList[3]._id, status: 'completed' },
+        { user_id: demoUser._id, anime_id: animeList[7]._id, status: 'want' }
+    ]);
+    console.log('  ✅ Watchlist seeded');
 
-    // Add sample comments
-    const cmtStmt = db.prepare(
-        `INSERT OR IGNORE INTO comments (user_id, episode_id, content) VALUES (?, ?, ?)`
-    );
-    cmtStmt.run(1, 1, 'ตอนแรกมันมากกกก! 🔥');
-    cmtStmt.run(1, 2, 'แอนิเมชั่น MAPPA สุดยอดเหมือนเดิม');
-    cmtStmt.run(2, 1, 'ใครยังไม่ดูรีบดูเลย ดีมากเลย');
+    // --- Sample comments ---
+    await Comment.insertMany([
+        { user_id: demoUser._id, episode_id: episodes[0]._id, content: 'ตอนแรกมันมากกกก! 🔥' },
+        { user_id: demoUser._id, episode_id: episodes[1]._id, content: 'แอนิเมชั่น MAPPA สุดยอดเหมือนเดิม' },
+        { user_id: adminUser._id, episode_id: episodes[0]._id, content: 'ใครยังไม่ดูรีบดูเลย ดีมากเลย' }
+    ]);
+    console.log('  ✅ Comments seeded');
 
-    console.log('✅ Database seeded successfully!');
+    console.log('🎉 Database seeded successfully!');
+    process.exit(0);
 }
 
 seed().catch(err => {
-    console.error('Seed error:', err);
+    console.error('❌ Seed error:', err);
     process.exit(1);
 });

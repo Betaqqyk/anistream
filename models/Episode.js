@@ -1,67 +1,43 @@
-const { getDb } = require('../database/db');
+const mongoose = require('mongoose');
 
-class Episode {
-    static findById(id) {
-        const db = getDb();
-        return db.prepare(
-            `SELECT e.*, a.title as anime_title, a.cover_image as anime_cover
-             FROM episodes e JOIN anime a ON e.anime_id = a.id WHERE e.id = ?`
-        ).get(id);
-    }
+const episodeSchema = new mongoose.Schema({
+    anime_id:   { type: mongoose.Schema.Types.ObjectId, ref: 'Anime', required: true },
+    number:     { type: Number, required: true },
+    title:      { type: String, default: '' },
+    thumbnail:  { type: String, default: '' },
+    video_url:  { type: String, default: '' },
+    duration:   { type: Number, default: 0 }
+}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
 
-    static getByAnime(animeId) {
-        const db = getDb();
-        return db.prepare('SELECT * FROM episodes WHERE anime_id = ? ORDER BY number ASC').all(animeId);
-    }
+episodeSchema.index({ anime_id: 1, number: 1 }, { unique: true });
 
-    static getLatestEpisodes(limit = 20) {
-        const db = getDb();
-        return db.prepare(
-            `SELECT e.*, a.title as anime_title, a.cover_image as anime_cover
-             FROM episodes e JOIN anime a ON e.anime_id = a.id
-             ORDER BY e.created_at DESC LIMIT ?`
-        ).all(limit);
-    }
+// --------------- static helpers ---------------
 
-    static create(data) {
-        const db = getDb();
-        const stmt = db.prepare(
-            `INSERT INTO episodes (anime_id, number, title, thumbnail, video_url, duration)
-             VALUES (?, ?, ?, ?, ?, ?)`
-        );
-        const result = stmt.run(data.anime_id, data.number, data.title, data.thumbnail, data.video_url, data.duration || 0);
-        return this.findById(result.lastInsertRowid);
-    }
+episodeSchema.statics.findByIdWithAnime = async function (id) {
+    const ep = await this.findById(id).populate('anime_id', 'title cover_image').lean();
+    if (!ep) return null;
+    return {
+        ...ep,
+        anime_title: ep.anime_id?.title || '',
+        anime_cover: ep.anime_id?.cover_image || ''
+    };
+};
 
-    static update(id, data) {
-        const db = getDb();
-        const fields = [];
-        const params = [];
-        ['anime_id', 'number', 'title', 'thumbnail', 'video_url', 'duration'].forEach(key => {
-            if (data[key] !== undefined) { fields.push(`${key} = ?`); params.push(data[key]); }
-        });
-        if (fields.length > 0) {
-            params.push(id);
-            db.prepare(`UPDATE episodes SET ${fields.join(', ')} WHERE id = ?`).run(...params);
-        }
-        return this.findById(id);
-    }
+episodeSchema.statics.getByAnime = async function (animeId) {
+    return this.find({ anime_id: animeId }).sort({ number: 1 }).lean();
+};
 
-    static delete(id) {
-        const db = getDb();
-        return db.prepare('DELETE FROM episodes WHERE id = ?').run(id);
-    }
+episodeSchema.statics.getLatestEpisodes = async function (limit = 20) {
+    const eps = await this.find()
+        .sort({ created_at: -1 })
+        .limit(limit)
+        .populate('anime_id', 'title cover_image')
+        .lean();
+    return eps.map(ep => ({
+        ...ep,
+        anime_title: ep.anime_id?.title || '',
+        anime_cover: ep.anime_id?.cover_image || ''
+    }));
+};
 
-    static getWithProgress(animeId, userId) {
-        const db = getDb();
-        return db.prepare(
-            `SELECT e.*, COALESCE(wh.progress_seconds, 0) as progress, COALESCE(wh.completed, 0) as watched
-             FROM episodes e
-             LEFT JOIN watch_history wh ON e.id = wh.episode_id AND wh.user_id = ?
-             WHERE e.anime_id = ?
-             ORDER BY e.number ASC`
-        ).all(userId, animeId);
-    }
-}
-
-module.exports = Episode;
+module.exports = mongoose.model('Episode', episodeSchema);

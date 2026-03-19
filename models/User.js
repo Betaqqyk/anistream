@@ -1,55 +1,31 @@
-const { getDb } = require('../database/db');
+const mongoose = require('mongoose');
 
-class User {
-    static findById(id) {
-        const db = getDb();
-        return db.prepare('SELECT id, username, email, avatar, role, created_at FROM users WHERE id = ?').get(id);
-    }
+const userSchema = new mongoose.Schema({
+    username:      { type: String, required: true, unique: true },
+    email:         { type: String, required: true, unique: true },
+    password_hash: { type: String, required: true },
+    avatar:        { type: String, default: '/images/default-avatar.png' },
+    role:          { type: String, enum: ['user', 'admin'], default: 'user' }
+}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
 
-    static findByUsername(username) {
-        const db = getDb();
-        return db.prepare('SELECT * FROM users WHERE username = ?').get(username);
-    }
+// --------------- static helpers ---------------
 
-    static findByEmail(email) {
-        const db = getDb();
-        return db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-    }
+const safeFields = '_id username email avatar role created_at';
 
-    static create({ username, email, password_hash }) {
-        const db = getDb();
-        const stmt = db.prepare('INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)');
-        const result = stmt.run(username, email, password_hash);
-        return this.findById(result.lastInsertRowid);
-    }
+userSchema.statics.findByIdSafe = async function (id) {
+    return this.findById(id).select(safeFields).lean();
+};
 
-    static updateAvatar(id, avatar) {
-        const db = getDb();
-        db.prepare('UPDATE users SET avatar = ? WHERE id = ?').run(avatar, id);
-        return this.findById(id);
-    }
+userSchema.statics.findByUsername = async function (username) {
+    return this.findOne({ username }).lean();
+};
 
-    static getStats(userId) {
-        const db = getDb();
-        const episodes = db.prepare(
-            'SELECT COUNT(*) as count FROM watch_history WHERE user_id = ? AND completed = 1'
-        ).get(userId);
-        const totalTime = db.prepare(
-            `SELECT COALESCE(SUM(e.duration), 0) as total_seconds
-             FROM watch_history wh
-             JOIN episodes e ON wh.episode_id = e.id
-             WHERE wh.user_id = ? AND wh.completed = 1`
-        ).get(userId);
-        return {
-            episodes_watched: episodes.count,
-            days_watched: Math.round((totalTime.total_seconds / 86400) * 10) / 10
-        };
-    }
+userSchema.statics.findByEmail = async function (email) {
+    return this.findOne({ email }).lean();
+};
 
-    static getAll() {
-        const db = getDb();
-        return db.prepare('SELECT id, username, email, avatar, role, created_at FROM users ORDER BY created_at DESC').all();
-    }
-}
+userSchema.statics.getAll = async function () {
+    return this.find().select(safeFields).sort({ created_at: -1 }).lean();
+};
 
-module.exports = User;
+module.exports = mongoose.model('User', userSchema);

@@ -1,8 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-
-const { dbReady } = require('./database/db');
+const { connectDB } = require('./database/db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,12 +23,12 @@ app.get('/:page.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', `${req.params.page}.html`));
 });
 
-// Wait for DB before listening
-dbReady.then(() => {
+// Connect to MongoDB then start server
+connectDB().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 02HUB server running at http://localhost:${PORT}`);
     });
 }).catch(err => {
-    console.error('Failed to initialize database:', err);
+    console.error('Failed to connect to MongoDB:', err);
     process.exit(1);
 });

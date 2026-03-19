@@ -1,129 +1,68 @@
-const initSqlJs = require('sql.js');
-const path = require('path');
-const fs = require('fs');
+const mongoose = require('mongoose');
+const dns = require('dns');
+require('dotenv').config();
 
-const DB_PATH = path.join(__dirname, 'anime.db');
-const SCHEMA_PATH = path.join(__dirname, 'schema.sql');
+// Force Google DNS — Thai ISPs often can't resolve SRV records
+dns.setServers(['8.8.8.8', '8.8.4.4']);
 
-let db = null;
-let dbReady = null;
+// Global plugin: add `id` string field to every lean() result
+// so frontend code that uses `.id` keeps working (was integer in SQLite, now ObjectId string)
+mongoose.plugin(function addIdPlugin(schema) {
+    schema.set('toJSON', {
+        virtuals: true,
+        transform: (_doc, ret) => {
+            ret.id = ret._id;
+            return ret;
+        }
+    });
+    schema.set('toObject', {
+        virtuals: true,
+        transform: (_doc, ret) => {
+            ret.id = ret._id;
+            return ret;
+        }
+    });
+});
 
-// Wrapper that provides a better-sqlite3 compatible API on top of sql.js
-class DbWrapper {
-    constructor(sqlDb) {
-        this._db = sqlDb;
-    }
-
-    prepare(sql) {
-        const self = this;
-        return {
-            run(...params) {
-                self._db.run(sql, params);
-                const changes = self._db.getRowsModified();
-                const lastId = self._db.exec("SELECT last_insert_rowid() as id");
-                const lastInsertRowid = lastId.length > 0 ? lastId[0].values[0][0] : 0;
-                self._save();
-                return { changes, lastInsertRowid };
-            },
-            get(...params) {
-                const stmt = self._db.prepare(sql);
-                stmt.bind(params);
-                let row = null;
-                if (stmt.step()) {
-                    const cols = stmt.getColumnNames();
-                    const vals = stmt.get();
-                    row = {};
-                    cols.forEach((c, i) => row[c] = vals[i]);
-                }
-                stmt.free();
-                return row;
-            },
-            all(...params) {
-                const results = [];
-                const stmt = self._db.prepare(sql);
-                stmt.bind(params);
-                while (stmt.step()) {
-                    const cols = stmt.getColumnNames();
-                    const vals = stmt.get();
-                    const row = {};
-                    cols.forEach((c, i) => row[c] = vals[i]);
-                    results.push(row);
-                }
-                stmt.free();
-                return results;
+// Monkey-patch lean() to add `id` from `_id` on plain objects
+const origLean = mongoose.Query.prototype.lean;
+mongoose.Query.prototype.lean = function (...args) {
+    const query = origLean.apply(this, args);
+    const origExec = query.exec;
+    query.exec = async function (...a) {
+        const result = await origExec.apply(this, a);
+        function addId(obj) {
+            if (!obj) return obj;
+            if (Array.isArray(obj)) return obj.map(addId);
+            if (obj._id) obj.id = obj._id;
+            return obj;
+        }
+        return addId(result);
+    };
+    // Also patch .then so await works directly
+    const origThen = query.then;
+    query.then = function (resolve, reject) {
+        return origThen.call(this, (result) => {
+            function addId(obj) {
+                if (!obj) return obj;
+                if (Array.isArray(obj)) return obj.map(addId);
+                if (obj._id) obj.id = obj._id;
+                return obj;
             }
-        };
-    }
+            if (resolve) return resolve(addId(result));
+            return addId(result);
+        }, reject);
+    };
+    return query;
+};
 
-    exec(sql) {
-        this._db.exec(sql);
-        this._save();
+async function connectDB() {
+    const uri = process.env.MONGODB_URI;
+    if (!uri) {
+        throw new Error('MONGODB_URI is not defined in environment variables');
     }
-
-    pragma(str) {
-        try {
-            this._db.exec(`PRAGMA ${str}`);
-        } catch (e) {
-            // Ignore unsupported pragmas
-        }
-    }
-
-    _save() {
-        try {
-            const data = this._db.export();
-            const buffer = Buffer.from(data);
-            fs.writeFileSync(DB_PATH, buffer);
-        } catch (e) {
-            // Swallow save errors silently
-        }
-    }
+    await mongoose.connect(uri);
+    console.log('✅ Connected to MongoDB Atlas');
 }
 
-async function initDb() {
-    const SQL = await initSqlJs();
-
-    let sqlDb;
-    if (fs.existsSync(DB_PATH)) {
-        const fileBuffer = fs.readFileSync(DB_PATH);
-        sqlDb = new SQL.Database(fileBuffer);
-    } else {
-        sqlDb = new SQL.Database();
-    }
-
-    db = new DbWrapper(sqlDb);
-    db.pragma('foreign_keys = ON');
-
-    // Run schema
-    const schema = fs.readFileSync(SCHEMA_PATH, 'utf-8');
-    // Execute statements one by one
-    const statements = schema.split(';').filter(s => s.trim());
-    for (const stmt of statements) {
-        try {
-            db._db.exec(stmt + ';');
-        } catch (e) {
-            // Ignore errors for IF NOT EXISTS etc
-        }
-    }
-    db._save();
-
-    return db;
-}
-
-// Promise that resolves when DB is ready
-dbReady = initDb();
-
-function getDb() {
-    if (!db) {
-        throw new Error('Database not initialized yet. Await getDbAsync() first.');
-    }
-    return db;
-}
-
-async function getDbAsync() {
-    if (!db) {
-        await dbReady;
-    }
-    return db;
-}
-
-module.exports = { getDb, getDbAsync, dbReady };
+module.exports = { connectDB };

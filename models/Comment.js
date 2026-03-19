@@ -1,42 +1,46 @@
-const { getDb } = require('../database/db');
+const mongoose = require('mongoose');
 
-class Comment {
-    static getByEpisode(episodeId, limit = 50) {
-        const db = getDb();
-        return db.prepare(
-            `SELECT c.*, u.username, u.avatar FROM comments c
-             JOIN users u ON c.user_id = u.id
-             WHERE c.episode_id = ?
-             ORDER BY c.created_at DESC LIMIT ?`
-        ).all(episodeId, limit);
-    }
+const commentSchema = new mongoose.Schema({
+    user_id:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    episode_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Episode', required: true },
+    content:    { type: String, required: true }
+}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
 
-    static create({ user_id, episode_id, content }) {
-        const db = getDb();
-        const stmt = db.prepare('INSERT INTO comments (user_id, episode_id, content) VALUES (?, ?, ?)');
-        const result = stmt.run(user_id, episode_id, content);
-        return db.prepare(
-            `SELECT c.*, u.username, u.avatar FROM comments c
-             JOIN users u ON c.user_id = u.id WHERE c.id = ?`
-        ).get(result.lastInsertRowid);
-    }
+commentSchema.index({ episode_id: 1 });
 
-    static delete(id) {
-        const db = getDb();
-        return db.prepare('DELETE FROM comments WHERE id = ?').run(id);
-    }
+// --------------- static helpers ---------------
 
-    static getAll(limit = 100) {
-        const db = getDb();
-        return db.prepare(
-            `SELECT c.*, u.username, e.title as episode_title, a.title as anime_title
-             FROM comments c
-             JOIN users u ON c.user_id = u.id
-             JOIN episodes e ON c.episode_id = e.id
-             JOIN anime a ON e.anime_id = a.id
-             ORDER BY c.created_at DESC LIMIT ?`
-        ).all(limit);
-    }
-}
+commentSchema.statics.getByEpisode = async function (episodeId, limit = 50) {
+    return this.find({ episode_id: episodeId })
+        .sort({ created_at: -1 })
+        .limit(limit)
+        .populate('user_id', 'username avatar')
+        .lean()
+        .then(docs => docs.map(d => ({
+            ...d,
+            username: d.user_id?.username || '',
+            avatar:   d.user_id?.avatar || ''
+        })));
+};
 
-module.exports = Comment;
+commentSchema.statics.getAllAdmin = async function (limit = 100) {
+    const docs = await this.find()
+        .sort({ created_at: -1 })
+        .limit(limit)
+        .populate('user_id', 'username')
+        .populate({
+            path: 'episode_id',
+            select: 'title anime_id',
+            populate: { path: 'anime_id', select: 'title' }
+        })
+        .lean();
+
+    return docs.map(d => ({
+        ...d,
+        username:      d.user_id?.username || '',
+        episode_title: d.episode_id?.title || '',
+        anime_title:   d.episode_id?.anime_id?.title || ''
+    }));
+};
+
+module.exports = mongoose.model('Comment', commentSchema);

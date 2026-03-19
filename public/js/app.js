@@ -470,7 +470,7 @@ function renderHero(animeList) {
                     <a href="/anime.html?id=${anime.id}" class="btn btn-primary">
                         ▶ ดูเลย
                     </a>
-                    <button class="btn btn-secondary" onclick="addToWatchlist(${anime.id})">
+                    <button class="btn btn-secondary" onclick="addToWatchlist('${anime.id}')">
                         + รายการของฉัน
                     </button>
                 </div>
