@@ -3,6 +3,8 @@ const router = express.Router();
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const https = require('https');
+const http = require('http');
 
 const { requireAdmin } = require('../../middleware/auth');
 const { convertToHLS, zipDirectory } = require('../../services/hlsProcessor');
@@ -42,6 +44,30 @@ router.get('/status/:jobId', requireAdmin, (req, res) => {
     res.json(job);
 });
 
+// Helper Function: Download Direct Link
+function downloadDirectLink(url, destFilePath) {
+    return new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(destFilePath);
+        const protocol = url.startsWith('https') ? https : http;
+        
+        protocol.get(url, (response) => {
+            if (response.statusCode === 301 || response.statusCode === 302) {
+                // Handle Redirects
+                return downloadDirectLink(response.headers.location, destFilePath).then(resolve).catch(reject);
+            }
+            if (response.statusCode !== 200) {
+                return reject(new Error(`Download failed with status code: ${response.statusCode}`));
+            }
+            response.pipe(file);
+            file.on('finish', () => {
+                file.close(resolve);
+            });
+        }).on('error', (err) => {
+            fs.unlink(destFilePath, () => reject(err));
+        });
+    });
+}
+
 // GET /api/upload_video/ftp_files
 router.get('/ftp_files', requireAdmin, (req, res) => {
     const ftpDir = path.join(__dirname, '../../uploads/ftp_inbox');
@@ -63,8 +89,19 @@ router.get('/ftp_files', requireAdmin, (req, res) => {
 router.post('/', requireAdmin, upload.single('video'), async (req, res) => {
     let inputPath = '';
     let isFtp = false;
+    let isDirectUrl = false;
+    let directUrl = req.body.direct_url;
 
-    if (req.body.ftp_file) {
+    if (directUrl) {
+        // Validation check
+        if (!directUrl.startsWith('http')) return res.status(400).json({ error: 'Direct Link ต้องขึ้นต้นด้วย http หรือ https' });
+        
+        // Setup temp path for download
+        const ext = '.mp4'; // Default extension, can be parsed from URL but .mp4 is safe for FFmpeg
+        const tempName = `download-${Date.now()}-${Math.random().toString(36).substr(2, 6)}${ext}`;
+        inputPath = path.join(__dirname, '../../uploads/ftp_inbox', tempName);
+        isDirectUrl = true;
+    } else if (req.body.ftp_file) {
         inputPath = path.join(__dirname, '../../uploads/ftp_inbox', req.body.ftp_file);
         // Basic security check to prevent path traversal
         if (inputPath.indexOf(path.join(__dirname, '../../uploads/ftp_inbox')) !== 0) {
@@ -77,7 +114,7 @@ router.post('/', requireAdmin, upload.single('video'), async (req, res) => {
     } else if (req.file) {
         inputPath = req.file.path;
     } else {
-        return res.status(400).json({ error: 'กรุณาอัปโหลดไฟล์ หรือเลือกไฟล์จาก FTP' });
+        return res.status(400).json({ error: 'กรุณาอัปโหลดไฟล์, เลือกจาก FTP, หรือใส่ Direct Link' });
     }
     
     const baseName = path.basename(inputPath, path.extname(inputPath));
@@ -93,7 +130,15 @@ router.post('/', requireAdmin, upload.single('video'), async (req, res) => {
     // Process in background
     (async () => {
         try {
+            if (isDirectUrl) {
+                jobs.set(jobId, { status: 'processing', message: 'กำลังดูดไฟล์จาก Direct Link (อาจใช้เวลา 10-60 วินาที)...' });
+                console.log(`[Upload] Downloading Direct Link: ${directUrl}`);
+                await downloadDirectLink(directUrl, inputPath);
+                console.log(`[Upload] Download Complete. Saved to ${inputPath}`);
+            }
+
             console.log(`[Upload] Starting HLS conversion for ${inputPath}`);
+            jobs.set(jobId, { status: 'processing', message: 'กำลังแปลงไฟล์ HLS แบบ Fast Copy...' });
             await convertToHLS(inputPath, hlsDir);
 
             jobs.set(jobId, { status: 'processing', message: 'แปลงไฟล์สำเร็จ... กำลังบีบอัด Zip' });
@@ -102,7 +147,11 @@ router.post('/', requireAdmin, upload.single('video'), async (req, res) => {
 
             jobs.set(jobId, { status: 'processing', message: 'กำลังอัปโหลดขึ้น Telegram (อาจใช้เวลาหลายนาที)...' });
             console.log(`[Upload] Uploading zip to Telegram...`);
-            const originalName = req.file ? req.file.originalname : req.body.ftp_file;
+            
+            let originalName = 'direct_download.mp4';
+            if (req.file) originalName = req.file.originalname;
+            else if (req.body.ftp_file) originalName = req.body.ftp_file;
+            
             const messageId = await uploadFileToTelegram(zipPath, `${baseName}.zip`, `HLS Cache: ${originalName}`);
 
             console.log(`[Upload] Uploaded successfully! Telegram Message ID: ${messageId}`);

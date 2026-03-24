@@ -156,15 +156,34 @@
                 <div class="form-group"><label>ชื่อตอน</label><input type="text" name="title"></div>
                 <div class="form-group"><label>URL Thumbnail</label><input type="url" name="thumbnail"></div>
                 <div class="form-group">
-                    <label>วิดีโอ (อัปโหลด หรือ เลือกจาก FileZilla FTP)</label>
-                    <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm);">
-                        <input type="file" id="epVideoFile" accept="video/mp4,video/x-mkv,video/avi" style="flex:1;">
-                        <span style="align-self:center;font-size:12px;color:var(--text-muted)">หรือ</span>
-                        <select id="epFtpFile" style="flex:1;"><option value="">-- โหลดค้างไว้... --</option></select>
-                        <button type="button" class="btn btn-secondary" onclick="uploadVideoFile()" id="epUploadBtn" style="white-space:nowrap">ประมวลผล</button>
+                    <label>แหล่งที่มาวิดีโอ (เลือกกรอก 1 ข้อมูล)</label>
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;background:var(--bg-lighter);padding:12px;border-radius:8px;">
+                        
+                        <!-- 1. Upload Local File -->
+                        <div style="display:flex;gap:var(--space-sm);align-items:center;">
+                            <span style="width:100px;font-size:13px;color:var(--text-muted)">อัปโหลดไฟล์:</span>
+                            <input type="file" id="epVideoFile" accept="video/mp4,video/x-mkv,video/avi" style="flex:1;">
+                        </div>
+
+                        <!-- 2. Select from FTP -->
+                        <div style="display:flex;gap:var(--space-sm);align-items:center;">
+                            <span style="width:100px;font-size:13px;color:var(--text-muted)">ไฟล์ FileZilla:</span>
+                            <select id="epFtpFile" style="flex:1;"><option value="">-- รอการโหลด... --</option></select>
+                        </div>
+
+                        <div style="text-align:center;font-size:12px;color:var(--text-muted);margin:4px 0;">— หรือวิธีที่เร็วที่สุด —</div>
+
+                        <!-- 3. Direct URL -->
+                        <div style="display:flex;gap:var(--space-sm);align-items:center;">
+                            <span style="width:100px;font-size:13px;color:var(--accent-cyan);font-weight:bold;">ดูดจาก Telegram:</span>
+                            <input type="url" id="epDirectUrl" style="flex:1;" placeholder="วาง Direct Link เช่น https://api.telegram.org/file/...">
+                        </div>
+
                     </div>
-                    <small style="color:var(--text-muted);display:block;margin-bottom:8px;">โยนไฟล์ผ่าน FileZilla ไปที่ <code>/var/www/my-movie-website/uploads/ftp_inbox</code></small>
-                    <small id="uploadStatusText" style="color:var(--accent-purple);margin-top:4px;display:block;"></small>
+                    
+                    <button type="button" class="btn btn-secondary" onclick="uploadVideoFile()" id="epUploadBtn" style="width:100%;margin-bottom:8px;">🚀 ประมวลผลวิดีโอเข้าสู่เซิร์ฟเวอร์</button>
+                    
+                    <small id="uploadStatusText" style="color:var(--accent-purple);margin-top:4px;display:block;text-align:center;font-weight:bold;"></small>
                 </div>
                 <div class="form-group"><label>URL วิดีโอ (ใส่เอง หรือรอรับจากการอัปโหลดข้างบน)</label><input type="url" name="video_url" id="epVideoUrlInput"></div>
                 <div class="modal-footer" style="padding:var(--space-lg) 0 0;">
@@ -423,11 +442,14 @@
     async function uploadVideoFile() {
         const fileInput = document.getElementById('epVideoFile');
         const ftpSelect = document.getElementById('epFtpFile');
+        const directInput = document.getElementById('epDirectUrl');
+        
         const file = fileInput.files[0];
         const ftpFile = ftpSelect.value;
+        const directUrl = directInput.value.trim();
 
-        if (!file && !ftpFile) {
-            showToast('กรุณาเลือกไฟล์วิดีโอ หรือ เลือกจากรายการ FileZilla', 'error');
+        if (!file && !ftpFile && !directUrl) {
+            showToast('กรุณาเลือกไฟล์วิดีโอ, เลือกจาก FileZilla, หรือวางลิงก์วิดีโอ', 'error');
             return;
         }
 
@@ -435,11 +457,12 @@
         const statusText = document.getElementById('uploadStatusText');
         btn.disabled = true;
         btn.textContent = file ? 'กำลังอัปโหลด...' : 'ส่งคำสั่งเริ่ม...';
-        statusText.textContent = file ? 'สถานะ: เริ่มส่งข้อมูลผ่านอินเทอร์เน็ต...' : 'สถานะ: กำลังสั่งงานให้ VPS จัดการ...';
+        statusText.textContent = file ? 'สถานะ: เริ่มส่งข้อมูลผ่านอินเทอร์เน็ต...' : 'สถานะ: กำลังสั่งงานให้เซิร์ฟเวอร์ดึงข้อมูล...';
 
         const formData = new FormData();
         if (file) formData.append('video', file);
         if (ftpFile) formData.append('ftp_file', ftpFile);
+        if (directUrl) formData.append('direct_url', directUrl);
 
         try {
             const res = await api('/api/upload_video', {
