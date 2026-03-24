@@ -156,11 +156,14 @@
                 <div class="form-group"><label>ชื่อตอน</label><input type="text" name="title"></div>
                 <div class="form-group"><label>URL Thumbnail</label><input type="url" name="thumbnail"></div>
                 <div class="form-group">
-                    <label>อัปโหลดไฟล์วิดีโอ (แปลง HLS & พื้นที่เก็บ Telegram)</label>
-                    <div style="display:flex;gap:var(--space-sm);">
+                    <label>วิดีโอ (อัปโหลด หรือ เลือกจาก FileZilla FTP)</label>
+                    <div style="display:flex;gap:var(--space-sm);margin-bottom:var(--space-sm);">
                         <input type="file" id="epVideoFile" accept="video/mp4,video/x-mkv,video/avi" style="flex:1;">
-                        <button type="button" class="btn btn-secondary" onclick="uploadVideoFile()" id="epUploadBtn">อัปโหลด</button>
+                        <span style="align-self:center;font-size:12px;color:var(--text-muted)">หรือ</span>
+                        <select id="epFtpFile" style="flex:1;"><option value="">-- โหลดค้างไว้... --</option></select>
+                        <button type="button" class="btn btn-secondary" onclick="uploadVideoFile()" id="epUploadBtn" style="white-space:nowrap">ประมวลผล</button>
                     </div>
+                    <small style="color:var(--text-muted);display:block;margin-bottom:8px;">โยนไฟล์ผ่าน FileZilla ไปที่ <code>/var/www/my-movie-website/uploads/ftp_inbox</code></small>
                     <small id="uploadStatusText" style="color:var(--accent-purple);margin-top:4px;display:block;"></small>
                 </div>
                 <div class="form-group"><label>URL วิดีโอ (ใส่เอง หรือรอรับจากการอัปโหลดข้างบน)</label><input type="url" name="video_url" id="epVideoUrlInput"></div>
@@ -359,11 +362,22 @@
         }
     }
 
+    async function loadFtpFiles() {
+        try {
+            const files = await api('/api/upload_video/ftp_files');
+            const select = document.getElementById('epFtpFile');
+            select.innerHTML = '<option value="">-- เลือกไฟล์ใน FileZilla --</option>' + 
+                files.map(f => `<option value="${f.name}">${f.name} (${(f.size/1024/1024).toFixed(1)}MB)</option>`).join('');
+        } catch(e) { console.error('Failed to load FTP files:', e); }
+    }
+
     function showEpisodeModal(ep = null) {
         const form = document.getElementById('episodeForm');
         form.reset();
         document.getElementById('epFormId').value = '';
         document.getElementById('epModalTitle').textContent = ep ? 'แก้ไขตอน' : 'เพิ่มตอน';
+        document.getElementById('uploadStatusText').textContent = '';
+        loadFtpFiles(); // Load files every time modal opens
         if (ep) {
             document.getElementById('epFormId').value = ep.id;
             form.anime_id.value = ep.anime_id;
@@ -408,19 +422,24 @@
     let uploadPollInterval = null;
     async function uploadVideoFile() {
         const fileInput = document.getElementById('epVideoFile');
+        const ftpSelect = document.getElementById('epFtpFile');
         const file = fileInput.files[0];
-        if (!file) {
-            showToast('กรุณาเลือกไฟล์วิดีโอก่อน', 'error');
+        const ftpFile = ftpSelect.value;
+
+        if (!file && !ftpFile) {
+            showToast('กรุณาเลือกไฟล์วิดีโอ หรือ เลือกจากรายการ FileZilla', 'error');
             return;
         }
 
         const btn = document.getElementById('epUploadBtn');
         const statusText = document.getElementById('uploadStatusText');
         btn.disabled = true;
-        btn.textContent = 'กำลังอัปโหลด...';
+        btn.textContent = file ? 'กำลังอัปโหลด...' : 'ส่งคำสั่งเริ่ม...';
+        statusText.textContent = file ? 'สถานะ: เริ่มส่งข้อมูลผ่านอินเทอร์เน็ต...' : 'สถานะ: กำลังสั่งงานให้ VPS จัดการ...';
 
         const formData = new FormData();
-        formData.append('video', file);
+        if (file) formData.append('video', file);
+        if (ftpFile) formData.append('ftp_file', ftpFile);
 
         try {
             const res = await api('/api/upload_video', {

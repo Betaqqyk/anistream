@@ -42,11 +42,44 @@ router.get('/status/:jobId', requireAdmin, (req, res) => {
     res.json(job);
 });
 
+// GET /api/upload_video/ftp_files
+router.get('/ftp_files', requireAdmin, (req, res) => {
+    const ftpDir = path.join(__dirname, '../../uploads/ftp_inbox');
+    if (!fs.existsSync(ftpDir)) fs.mkdirSync(ftpDir, { recursive: true });
+    
+    try {
+        const files = fs.readdirSync(ftpDir).filter(f => /\.(mp4|mkv|avi|mov)$/i.test(f));
+        const fileList = files.map(f => {
+            const stat = fs.statSync(path.join(ftpDir, f));
+            return { name: f, size: stat.size, time: stat.mtime };
+        }).sort((a,b) => b.time - a.time);
+        res.json(fileList);
+    } catch(err) {
+        res.status(500).json({ error: 'ไม่สามารถอ่านไฟล์ FTP ได้' });
+    }
+});
+
 // POST /api/upload_video — admin only
 router.post('/', requireAdmin, upload.single('video'), async (req, res) => {
-    if (!req.file) return res.status(400).json({ error: 'ไม่มีไฟล์วิดีโอ' });
+    let inputPath = '';
+    let isFtp = false;
+
+    if (req.body.ftp_file) {
+        inputPath = path.join(__dirname, '../../uploads/ftp_inbox', req.body.ftp_file);
+        // Basic security check to prevent path traversal
+        if (inputPath.indexOf(path.join(__dirname, '../../uploads/ftp_inbox')) !== 0) {
+            return res.status(403).json({ error: 'Invalid path' });
+        }
+        if (!fs.existsSync(inputPath)) {
+            return res.status(400).json({ error: 'ไม่พบไฟล์ใน FTP Inbox' });
+        }
+        isFtp = true;
+    } else if (req.file) {
+        inputPath = req.file.path;
+    } else {
+        return res.status(400).json({ error: 'กรุณาอัปโหลดไฟล์ หรือเลือกไฟล์จาก FTP' });
+    }
     
-    const inputPath = req.file.path;
     const baseName = path.basename(inputPath, path.extname(inputPath));
     const hlsDir = path.join(__dirname, `../../uploads/hls_temp/${baseName}`);
     const zipPath = path.join(__dirname, `../../uploads/hls_temp/${baseName}.zip`);
@@ -69,7 +102,8 @@ router.post('/', requireAdmin, upload.single('video'), async (req, res) => {
 
             jobs.set(jobId, { status: 'processing', message: 'กำลังอัปโหลดขึ้น Telegram (อาจใช้เวลาหลายนาที)...' });
             console.log(`[Upload] Uploading zip to Telegram...`);
-            const messageId = await uploadFileToTelegram(zipPath, `${baseName}.zip`, `HLS Cache: ${req.file.originalname}`);
+            const originalName = req.file ? req.file.originalname : req.body.ftp_file;
+            const messageId = await uploadFileToTelegram(zipPath, `${baseName}.zip`, `HLS Cache: ${originalName}`);
 
             console.log(`[Upload] Uploaded successfully! Telegram Message ID: ${messageId}`);
             jobs.set(jobId, { status: 'done', url: `telegram:${messageId}` });
