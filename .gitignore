@@ -24,3 +24,6 @@ npm-debug.log*
 # Uploads (if any large media)
 public/uploads/*.mp4
 public/uploads/*.mkv
+uploads/
+02hub_deploy.zip
+02hub_deploy_clean.zip

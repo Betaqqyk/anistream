@@ -1,31 +1,34 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../database/db');
 
-const userSchema = new mongoose.Schema({
-    username:      { type: String, required: true, unique: true },
-    email:         { type: String, required: true, unique: true },
-    password_hash: { type: String, required: true },
-    avatar:        { type: String, default: '/images/default-avatar.png' },
-    role:          { type: String, enum: ['user', 'admin'], default: 'user' }
-}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
+const User = sequelize.define('User', {
+    id:            { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    username:      { type: DataTypes.STRING(100), allowNull: false, unique: true },
+    email:         { type: DataTypes.STRING(255), allowNull: false, unique: true },
+    password_hash: { type: DataTypes.STRING(255), allowNull: false },
+    avatar:        { type: DataTypes.STRING(500), defaultValue: '/images/default-avatar.png' },
+    role:          { type: DataTypes.ENUM('user', 'admin'), defaultValue: 'user' },
+    membership:    { type: DataTypes.ENUM('free', 'vip', 'svip'), defaultValue: 'free' }
+}, { tableName: 'users' });
 
-// --------------- static helpers ---------------
+// --------------- Static helpers ---------------
 
-const safeFields = '_id username email avatar role created_at';
+const safeAttributes = ['id', 'username', 'email', 'avatar', 'role', 'membership', 'created_at'];
 
-userSchema.statics.findByIdSafe = async function (id) {
-    return this.findById(id).select(safeFields).lean();
+User.findByIdSafe = async function (id) {
+    return this.findByPk(id, { attributes: safeAttributes, raw: true });
 };
 
-userSchema.statics.findByUsername = async function (username) {
-    return this.findOne({ username }).lean();
+User.findByUsername = async function (username) {
+    return this.findOne({ where: { username }, raw: true });
 };
 
-userSchema.statics.findByEmail = async function (email) {
-    return this.findOne({ email }).lean();
+User.findByEmail = async function (email) {
+    return this.findOne({ where: { email }, raw: true });
 };
 
-userSchema.statics.getAll = async function () {
-    return this.find().select(safeFields).sort({ created_at: -1 }).lean();
+User.getAll = async function () {
+    return this.findAll({ attributes: safeAttributes, order: [['created_at', 'DESC']], raw: true });
 };
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = User;

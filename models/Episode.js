@@ -1,43 +1,58 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../database/db');
 
-const episodeSchema = new mongoose.Schema({
-    anime_id:   { type: mongoose.Schema.Types.ObjectId, ref: 'Anime', required: true },
-    number:     { type: Number, required: true },
-    title:      { type: String, default: '' },
-    thumbnail:  { type: String, default: '' },
-    video_url:  { type: String, default: '' },
-    duration:   { type: Number, default: 0 }
-}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
+const Episode = sequelize.define('Episode', {
+    id:        { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    anime_id:  { type: DataTypes.INTEGER, allowNull: false },
+    number:    { type: DataTypes.INTEGER, allowNull: false },
+    title:     { type: DataTypes.STRING(255), defaultValue: '' },
+    thumbnail: { type: DataTypes.STRING(500), defaultValue: '' },
+    video_url: { type: DataTypes.STRING(500), defaultValue: '' },   // Full URL or CDN path
+    duration:  { type: DataTypes.INTEGER, defaultValue: 0 }
+}, {
+    tableName: 'episodes',
+    indexes: [{ unique: true, fields: ['anime_id', 'number'] }]
+});
 
-episodeSchema.index({ anime_id: 1, number: 1 }, { unique: true });
+// --------------- Static helpers ---------------
 
-// --------------- static helpers ---------------
-
-episodeSchema.statics.findByIdWithAnime = async function (id) {
-    const ep = await this.findById(id).populate('anime_id', 'title cover_image').lean();
+Episode.findByIdWithAnime = async function (id) {
+    const Anime = require('./Anime');
+    const ep = await this.findByPk(id, {
+        include: [{ model: Anime, as: 'anime', attributes: ['title', 'cover_image'] }]
+    });
     if (!ep) return null;
+    const plain = ep.get({ plain: true });
     return {
-        ...ep,
-        anime_title: ep.anime_id?.title || '',
-        anime_cover: ep.anime_id?.cover_image || ''
+        ...plain,
+        anime_title: plain.anime?.title || '',
+        anime_cover: plain.anime?.cover_image || ''
     };
 };
 
-episodeSchema.statics.getByAnime = async function (animeId) {
-    return this.find({ anime_id: animeId }).sort({ number: 1 }).lean();
+Episode.getByAnime = async function (animeId) {
+    return this.findAll({
+        where: { anime_id: animeId },
+        order: [['number', 'ASC']],
+        raw: true
+    });
 };
 
-episodeSchema.statics.getLatestEpisodes = async function (limit = 20) {
-    const eps = await this.find()
-        .sort({ created_at: -1 })
-        .limit(limit)
-        .populate('anime_id', 'title cover_image')
-        .lean();
-    return eps.map(ep => ({
-        ...ep,
-        anime_title: ep.anime_id?.title || '',
-        anime_cover: ep.anime_id?.cover_image || ''
-    }));
+Episode.getLatestEpisodes = async function (limit = 20) {
+    const Anime = require('./Anime');
+    const eps = await this.findAll({
+        order: [['created_at', 'DESC']],
+        limit,
+        include: [{ model: Anime, as: 'anime', attributes: ['title', 'cover_image'] }]
+    });
+    return eps.map(ep => {
+        const plain = ep.get({ plain: true });
+        return {
+            ...plain,
+            anime_title: plain.anime?.title || '',
+            anime_cover: plain.anime?.cover_image || ''
+        };
+    });
 };
 
-module.exports = mongoose.model('Episode', episodeSchema);
+module.exports = Episode;

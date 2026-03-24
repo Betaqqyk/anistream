@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard — 02HUB</title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2300d4ff'/><polygon points='40,30 70,50 40,70' fill='%23fff'/></svg>">
 </head>
 <body>
 
@@ -155,7 +155,15 @@
                 </div>
                 <div class="form-group"><label>ชื่อตอน</label><input type="text" name="title"></div>
                 <div class="form-group"><label>URL Thumbnail</label><input type="url" name="thumbnail"></div>
-                <div class="form-group"><label>URL วิดีโอ</label><input type="url" name="video_url"></div>
+                <div class="form-group">
+                    <label>อัปโหลดไฟล์วิดีโอ (แปลง HLS & พื้นที่เก็บ Telegram)</label>
+                    <div style="display:flex;gap:var(--space-sm);">
+                        <input type="file" id="epVideoFile" accept="video/mp4,video/x-mkv,video/avi" style="flex:1;">
+                        <button type="button" class="btn btn-secondary" onclick="uploadVideoFile()" id="epUploadBtn">อัปโหลด</button>
+                    </div>
+                    <small id="uploadStatusText" style="color:var(--accent-purple);margin-top:4px;display:block;"></small>
+                </div>
+                <div class="form-group"><label>URL วิดีโอ (ใส่เอง หรือรอรับจากการอัปโหลดข้างบน)</label><input type="url" name="video_url" id="epVideoUrlInput"></div>
                 <div class="modal-footer" style="padding:var(--space-lg) 0 0;">
                     <button type="button" class="btn btn-secondary" onclick="closeModal('episodeModal')">ยกเลิก</button>
                     <button type="submit" class="btn btn-primary">บันทึก</button>
@@ -194,31 +202,30 @@
 
     async function loadAdminData() {
         try {
-            const [anime, comments, genres] = await Promise.all([
+            const [animeRes, comments, genres] = await Promise.all([
                 api('/api/anime?limit=100'),
                 api('/api/comments'),
                 api('/api/anime/genres/all')
             ]);
+            const anime = animeRes.data || animeRes;
             adminAnimeList = anime;
             renderAnimeTable(anime);
             renderCommentsTable(comments);
             renderGenres(genres);
             populateAnimeSelects(anime);
 
-            // Try loading users (may fail if no endpoint for all users yet)
+            // Load all users via API
             try {
-                // For simplicity, just show current user
+                const users = await api('/api/users');
                 const usersBody = document.getElementById('usersTableBody');
-                if (currentUser) {
-                    usersBody.innerHTML = `<tr>
-                        <td><div style="width:32px;height:32px;border-radius:50%;background:var(--accent-purple);display:flex;align-items:center;justify-content:center;">${currentUser.username[0].toUpperCase()}</div></td>
-                        <td>${currentUser.username}</td>
-                        <td>${currentUser.email}</td>
-                        <td><span style="padding:3px 10px;border-radius:var(--radius-full);background:var(--accent-purple);font-size:11px;">${currentUser.role}</span></td>
-                        <td>${currentUser.created_at || '-'}</td>
-                    </tr>`;
-                }
-            } catch(e) {}
+                usersBody.innerHTML = users.map(u => `<tr>
+                    <td><div style="width:32px;height:32px;border-radius:50%;background:var(--accent-purple);display:flex;align-items:center;justify-content:center;">${u.username[0].toUpperCase()}</div></td>
+                    <td>${u.username}</td>
+                    <td>${u.email}</td>
+                    <td><span style="padding:3px 10px;border-radius:var(--radius-full);background:${u.role === 'admin' ? 'var(--accent-purple)' : 'var(--bg-tertiary)'};font-size:11px;">${u.role}</span></td>
+                    <td>${u.created_at ? new Date(u.created_at).toLocaleDateString('th-TH') : '-'}</td>
+                </tr>`).join('');
+            } catch(e) { console.error('Users load error:', e); }
         } catch (err) {
             console.error('Admin load error:', err);
         }
@@ -235,18 +242,18 @@
     // ─── Anime CRUD ───
     function renderAnimeTable(animeList) {
         const tbody = document.getElementById('animeTableBody');
-        const statusLabel = { airing: '🔴 กำลังฉาย', completed: '✅ จบแล้ว', upcoming: '🔜 เร็วๆ นี้' };
+        const statusLabel = { airing: '<svg class="icon-sm" viewBox="0 0 24 24" width="10" height="10" style="display:inline;vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="6" fill="#ef4444"/></svg>กำลังฉาย', completed: '<svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#22c55e" stroke-width="3" style="display:inline;vertical-align:middle;margin-top:-2px;margin-right:4px;"><polyline points="20 6 9 17 4 12"></polyline></svg>จบแล้ว', upcoming: '<svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#eab308" stroke-width="2" style="display:inline;vertical-align:middle;margin-top:-2px;margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>เร็วๆ นี้' };
         tbody.innerHTML = animeList.map(a => `
             <tr>
                 <td>${a.cover_image ? `<img class="thumb-sm" src="${a.cover_image}" onerror="this.style.background='var(--bg-tertiary)'">` : '-'}</td>
                 <td><strong>${a.title}</strong><br><span style="font-size:11px;color:var(--text-muted);">${a.title_en || ''}</span></td>
                 <td>${a.year || '-'}</td>
                 <td>${statusLabel[a.status] || a.status}</td>
-                <td>⭐ ${a.rating}</td>
+                <td><svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" style="display:inline;vertical-align:middle;margin-top:-2px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="#facc15"/></svg> ${a.rating}</td>
                 <td>${a.studio || '-'}</td>
                 <td>
-                    <button class="btn btn-sm btn-secondary" onclick="editAnime('${a.id}')">✏️</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteAnime('${a.id}')">🗑</button>
+                    <button class="btn btn-sm btn-secondary" onclick="editAnime('${a.id}')" title="แก้ไข"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteAnime('${a.id}')" title="ลบ"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                 </td>
             </tr>
         `).join('');
@@ -297,10 +304,10 @@
         try {
             if (id) {
                 await api(`/api/anime/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-                showToast('อัปเดตอนิเมะสำเร็จ! ✅');
+                showToast('อัปเดตอนิเมะสำเร็จ!');
             } else {
                 await api('/api/anime', { method: 'POST', body: JSON.stringify(data) });
-                showToast('เพิ่มอนิเมะสำเร็จ! 🎬');
+                showToast('เพิ่มอนิเมะสำเร็จ! ✅');
             }
             closeModal('animeModal');
             loadAdminData();
@@ -342,8 +349,8 @@
                     <td>${ep.title || '-'}</td>
                     <td>${ep.duration ? Math.floor(ep.duration / 60) + ' นาที' : '-'}</td>
                     <td>
-                        <button class="btn btn-sm btn-secondary" onclick='editEpisode(${JSON.stringify(ep).replace(/'/g, "&#39;")})'>✏️</button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteEpisode('${ep.id}')">🗑</button>
+                        <button class="btn btn-sm btn-secondary" onclick='editEpisode(${JSON.stringify(ep).replace(/'/g, "&#39;")})' title="แก้ไข"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteEpisode('${ep.id}')" title="ลบ"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
                     </td>
                 </tr>
             `).join('');
@@ -379,23 +386,88 @@
         const data = Object.fromEntries(form.entries());
         const id = data.id;
         delete data.id;
-        // anime_id is now a MongoDB ObjectId string, no parseInt needed
+        // anime_id is a numeric MySQL ID, no parseInt needed
         data.number = parseInt(data.number);
         if (data.duration) data.duration = parseInt(data.duration);
 
         try {
             if (id) {
                 await api(`/api/episodes/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-                showToast('อัปเดตตอนสำเร็จ! ✅');
+                showToast('อัปเดตตอนสำเร็จ!');
             } else {
                 await api('/api/episodes', { method: 'POST', body: JSON.stringify(data) });
-                showToast('เพิ่มตอนสำเร็จ! 📺');
+                showToast('เพิ่มตอนสำเร็จ!');
             }
             closeModal('episodeModal');
             loadAdminEpisodes(data.anime_id);
         } catch (err) {
             showToast(err.message, 'error');
         }
+    }
+
+    let uploadPollInterval = null;
+    async function uploadVideoFile() {
+        const fileInput = document.getElementById('epVideoFile');
+        const file = fileInput.files[0];
+        if (!file) {
+            showToast('กรุณาเลือกไฟล์วิดีโอก่อน', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('epUploadBtn');
+        const statusText = document.getElementById('uploadStatusText');
+        btn.disabled = true;
+        btn.textContent = 'กำลังอัปโหลด...';
+
+        const formData = new FormData();
+        formData.append('video', file);
+
+        try {
+            const res = await api('/api/upload_video', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (res.jobId) {
+                showToast('เริ่มประมวลผลวิดีโอ (FFmpeg HLS)', 'success');
+                pollUploadStatus(res.jobId);
+            }
+        } catch (err) {
+            showToast(err.message || 'เริ่มอัปโหลดไม่สำเร็จ', 'error');
+            btn.disabled = false;
+            btn.textContent = 'อัปโหลด';
+        }
+    }
+
+    function pollUploadStatus(jobId) {
+        const statusText = document.getElementById('uploadStatusText');
+        const btn = document.getElementById('epUploadBtn');
+        
+        clearInterval(uploadPollInterval);
+        uploadPollInterval = setInterval(async () => {
+            try {
+                const res = await api(`/api/upload_video/status/${jobId}`);
+                if (res.status === 'processing') {
+                    statusText.textContent = `สถานะ: ${res.message}`;
+                    statusText.style.color = 'var(--accent-cyan)';
+                } else if (res.status === 'done') {
+                    clearInterval(uploadPollInterval);
+                    statusText.textContent = '✅ อัปโหลดและประมวลผลเสร็จสิ้น!';
+                    statusText.style.color = 'var(--accent-green)';
+                    document.getElementById('epVideoUrlInput').value = res.url;
+                    btn.disabled = false;
+                    btn.textContent = 'อัปโหลดสำเร็จ';
+                } else if (res.status === 'error') {
+                    clearInterval(uploadPollInterval);
+                    statusText.textContent = `❌ ข้อผิดพลาด: ${res.message}`;
+                    statusText.style.color = 'var(--accent-red)';
+                    btn.disabled = false;
+                    btn.textContent = 'ลองใหม่';
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }, 3000);
     }
 
     async function deleteEpisode(id) {
@@ -420,7 +492,7 @@
                 <td>${c.episode_title || '-'}</td>
                 <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${c.content}</td>
                 <td style="white-space:nowrap;">${c.created_at ? new Date(c.created_at).toLocaleDateString('th-TH') : '-'}</td>
-                <td><button class="btn btn-sm btn-danger" onclick="deleteComment('${c.id}')">🗑</button></td>
+                <td><button class="btn btn-sm btn-danger" onclick="deleteComment('${c.id}')" title="ลบ"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></td>
             </tr>
         `).join('');
     }

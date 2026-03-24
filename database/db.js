@@ -1,68 +1,32 @@
-const mongoose = require('mongoose');
-const dns = require('dns');
 require('dotenv').config();
+const { Sequelize } = require('sequelize');
 
-// Force Google DNS — Thai ISPs often can't resolve SRV records
-dns.setServers(['8.8.8.8', '8.8.4.4']);
-
-// Global plugin: add `id` string field to every lean() result
-// so frontend code that uses `.id` keeps working (was integer in SQLite, now ObjectId string)
-mongoose.plugin(function addIdPlugin(schema) {
-    schema.set('toJSON', {
-        virtuals: true,
-        transform: (_doc, ret) => {
-            ret.id = ret._id;
-            return ret;
+const sequelize = new Sequelize(
+    process.env.MYSQL_DATABASE || 'anistream',
+    process.env.MYSQL_USER     || 'root',
+    process.env.MYSQL_PASSWORD || '',
+    {
+        host:    process.env.MYSQL_HOST || '127.0.0.1',
+        port:    parseInt(process.env.MYSQL_PORT) || 3306,
+        dialect: 'mysql',
+        logging: false,
+        define: {
+            underscored: true,           // snake_case column names
+            createdAt:   'created_at',
+            updatedAt:   'updated_at'
+        },
+        pool: {
+            max:     10,
+            min:     0,
+            acquire: 30000,
+            idle:    10000
         }
-    });
-    schema.set('toObject', {
-        virtuals: true,
-        transform: (_doc, ret) => {
-            ret.id = ret._id;
-            return ret;
-        }
-    });
-});
-
-// Monkey-patch lean() to add `id` from `_id` on plain objects
-const origLean = mongoose.Query.prototype.lean;
-mongoose.Query.prototype.lean = function (...args) {
-    const query = origLean.apply(this, args);
-    const origExec = query.exec;
-    query.exec = async function (...a) {
-        const result = await origExec.apply(this, a);
-        function addId(obj) {
-            if (!obj) return obj;
-            if (Array.isArray(obj)) return obj.map(addId);
-            if (obj._id) obj.id = obj._id;
-            return obj;
-        }
-        return addId(result);
-    };
-    // Also patch .then so await works directly
-    const origThen = query.then;
-    query.then = function (resolve, reject) {
-        return origThen.call(this, (result) => {
-            function addId(obj) {
-                if (!obj) return obj;
-                if (Array.isArray(obj)) return obj.map(addId);
-                if (obj._id) obj.id = obj._id;
-                return obj;
-            }
-            if (resolve) return resolve(addId(result));
-            return addId(result);
-        }, reject);
-    };
-    return query;
-};
+    }
+);
 
 async function connectDB() {
-    const uri = process.env.MONGODB_URI;
-    if (!uri) {
-        throw new Error('MONGODB_URI is not defined in environment variables');
-    }
-    await mongoose.connect(uri);
-    console.log('✅ Connected to MongoDB Atlas');
+    await sequelize.authenticate();
+    console.log('✅ Connected to MySQL');
 }
 
-module.exports = { connectDB };
+module.exports = { sequelize, connectDB };

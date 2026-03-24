@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
@@ -6,7 +6,7 @@
     <title>ค้นหาอนิเมะ — 02HUB</title>
     <meta name="description" content="ค้นหาอนิเมะ กรองตามหมวดหมู่ ปีที่ฉาย สถานะ และสตูดิโอ">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2300d4ff'/><polygon points='40,30 70,50 40,70' fill='%23fff'/></svg>">
 </head>
 <body>
 
@@ -22,6 +22,13 @@
             <a href="/search.html" class="active">ค้นหา</a>
             <a href="/airing.html">กำลังฉาย</a>
             <a href="/popular.html">ยอดนิยม</a>
+                <div class="nav-dropdown">
+                    <a href="javascript:void(0)" class="dropdown-toggle">อนิเมะจีน <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+                    <div class="dropdown-menu">
+                        <a href="/search.html?q=จีน ซับไทย">ซับไตเติ้ล</a>
+                        <a href="/search.html?q=จีน พากย์ไทย">พากย์ไทย</a>
+                    </div>
+                </div>
         </div>
         <div class="nav-user" id="navUser"></div>
         <div class="nav-toggle" onclick="toggleMobileNav()"><span></span><span></span><span></span></div>
@@ -71,7 +78,7 @@
                     <div class="filter-options">
                         <div class="filter-option active" data-filter="sort" data-value="rating" onclick="setFilter('sort', 'rating', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="#facc15"/></svg> คะแนนสูงสุด</div>
                         <div class="filter-option" data-filter="sort" data-value="latest" onclick="setFilter('sort', 'latest', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14"><rect x="2" y="2" width="20" height="20" rx="4" fill="#22c55e"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="9" font-weight="bold">NEW</text></svg> ใหม่ล่าสุด</div>
-                        <div class="filter-option" data-filter="sort" data-value="title" onclick="setFilter('sort', 'title', this)">🔤 ตามชื่อ</div>
+                        <div class="filter-option" data-filter="sort" data-value="title" onclick="setFilter('sort', 'title', this)"><svg class="icon-sm" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v14"></path><path d="M8 9h8"></path><path d="M8 13h6"></path></svg> ตามชื่อ</div>
                     </div>
                 </div>
             </aside>
@@ -181,7 +188,8 @@
             if (filters.sort) params.set('sort', filters.sort);
             params.set('limit', '40');
 
-            const results = await api(`/api/anime?${params.toString()}`);
+            const res = await api(`/api/anime?${params.toString()}`);
+            const results = res.data || res;
             loading.style.display = 'none';
             document.getElementById('resultCount').textContent = `${results.length} ผลลัพธ์`;
 
@@ -192,7 +200,7 @@
             }
 
             if (results.length === 0) {
-                grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text-muted);font-size:var(--font-size-lg);">🔍 ไม่พบผลลัพธ์ ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;padding:60px 0;color:var(--text-muted);font-size:var(--font-size-lg);"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="display:block;margin:0 auto 16px;opacity:0.5;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>ไม่พบผลลัพธ์ ลองเปลี่ยนคำค้นหาหรือตัวกรอง</p>';
                 return;
             }
 

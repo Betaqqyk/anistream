@@ -1,11 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>กำลังดู — 02HUB</title>
+    <meta name="description" content="ดูอนิเมะออนไลน์ฟรี ซับไทย พากย์ไทย คุณภาพ HD">
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2300d4ff'/><polygon points='40,30 70,50 40,70' fill='%23fff'/></svg>">
 </head>
 <body>
 
@@ -29,106 +30,174 @@
     </div>
 </nav>
 
-<!-- PLAYER -->
-<div style="padding-top: var(--navbar-height);">
-    <div class="player-container" id="playerContainer">
-        <div class="video-wrapper" id="videoWrapper">
-            <video id="videoPlayer" preload="metadata">
-                <source src="" type="video/mp4">
-            </video>
+<!-- WATCH PAGE -->
+<div class="watch-page" style="padding-top: var(--navbar-height);">
 
-            <!-- Big center play -->
-            <div id="bigPlayBtn" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:5;" onclick="togglePlay()">
-                <div style="width:72px;height:72px;border-radius:50%;background:var(--accent-purple);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 0 40px var(--accent-purple-glow);transition:transform 0.2s;">▶</div>
+    <!-- ═══ MAIN LAYOUT: Player + Sidebar ═══ -->
+    <div class="watch-layout">
+
+        <!-- LEFT: Player column -->
+        <div class="watch-main">
+            <!-- Video Player -->
+            <div class="watch-player" id="watchPlayer">
+                <!-- HTML5 Video Player -->
+                <div class="video-wrapper" id="videoWrapper" oncontextmenu="return false;">
+                    <video id="videoPlayer" preload="metadata" playsinline disablePictureInPicture disableRemotePlayback oncontextmenu="return false;">
+                    </video>
+
+                    <!-- Big center play -->
+                    <div id="bigPlayBtn" class="big-play-btn">
+                        <div class="big-play-circle">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="white"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                        </div>
+                    </div>
+
+                    <!-- Skip Intro -->
+                    <button class="skip-intro-btn" id="skipIntroBtn">ข้าม Intro ›</button>
+
+                    <!-- ═══ iQIYI Control Bar ═══ -->
+                    <div class="iq-controls" id="iqControls">
+                        <!-- Progress bar (full width) -->
+                        <div class="iq-progress" id="iqProgress">
+                            <div class="iq-progress-buffer" id="progressBuffer"></div>
+                            <div class="iq-progress-filled" id="progressFilled"></div>
+                            <div class="iq-progress-thumb" id="progressThumb"></div>
+                            <div class="iq-progress-tooltip" id="progressTooltip">0:00</div>
+                        </div>
+
+                        <div class="iq-bar">
+                            <!-- Left controls -->
+                            <div class="iq-bar-left">
+                                <button class="iq-btn" id="playPauseBtn" title="เล่น/หยุด (K)">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+                                </button>
+                                <button class="iq-btn" id="nextEpBtn" title="ตอนถัดไป (N)">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 4l12 8-12 8V4zM19 4v16h-2V4h2z"/></svg>
+                                </button>
+                                <span class="iq-time" id="timeDisplay">0:00 / 0:00</span>
+                            </div>
+
+                            <!-- Right controls -->
+                            <div class="iq-bar-right">
+                                <!-- Quality selector -->
+                                <div class="iq-dropdown-wrap" id="qualityWrap">
+                                    <button class="iq-btn iq-quality-btn" id="qualityBtn">
+                                        <span id="qualityLabel">720P</span>
+                                    </button>
+                                    <div class="iq-dropdown iq-quality-menu" id="qualityMenu">
+                                        <div class="iq-dropdown-title">คุณภาพวิดีโอ</div>
+                                        <button class="iq-quality-option" data-quality="4k">
+                                            <span class="iq-q-label">4K</span>
+                                            <span class="iq-q-badge svip">SVIP</span>
+                                        </button>
+                                        <button class="iq-quality-option" data-quality="1080p">
+                                            <span class="iq-q-label">1080P</span>
+                                            <span class="iq-q-badge vip">VIP</span>
+                                        </button>
+                                        <button class="iq-quality-option active" data-quality="720p">
+                                            <span class="iq-q-label">720P</span>
+                                        </button>
+                                        <button class="iq-quality-option" data-quality="480p">
+                                            <span class="iq-q-label">480P</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Volume -->
+                                <div class="iq-volume-wrap" id="volumeWrap">
+                                    <button class="iq-btn" id="muteBtn" title="เสียง (M)">
+                                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 010 7.07M19.07 4.93a10 10 0 010 14.14"/></svg>
+                                    </button>
+                                    <div class="iq-volume-slider-wrap">
+                                        <input type="range" class="iq-volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="1">
+                                    </div>
+                                </div>
+
+                                <!-- Episode list toggle -->
+                                <button class="iq-btn" id="epListBtn" title="รายการตอน">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                                </button>
+
+                                <!-- Fullscreen -->
+                                <button class="iq-btn" id="fullscreenBtn" title="เต็มจอ (F)">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- In-player episode panel -->
+                    <div class="iq-ep-panel" id="iqEpPanel">
+                        <div class="iq-ep-panel-head">
+                            <h4 id="panelTitle">เลือกตอน</h4>
+                            <button class="iq-ep-panel-close" id="epPanelClose">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div class="iq-ep-panel-grid" id="panelEpGrid"></div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Skip Intro -->
-            <button class="skip-intro-btn" id="skipIntroBtn" onclick="skipIntro()">ข้าม Intro ›</button>
-
-            <!-- Controls -->
-            <div class="video-controls" id="videoControls">
-                <!-- Progress bar -->
-                <div class="progress-bar" id="progressBar" onclick="seekVideo(event)">
-                    <div class="progress-buffer" id="progressBuffer" style="width:0%"></div>
-                    <div class="progress-filled" id="progressFilled" style="width:0%"></div>
+            <!-- Episode Info -->
+            <div class="watch-info">
+                <div class="watch-info-header">
+                    <div>
+                        <h1 class="watch-anime-title" id="epAnimeTitle"></h1>
+                        <p class="watch-ep-title" id="epTitle"></p>
+                    </div>
+                    <div class="watch-ep-nav">
+                        <button class="btn btn-secondary btn-sm" onclick="skipEpisode(-1)">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                            ก่อนหน้า
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="skipEpisode(1)">
+                            ถัดไป
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div class="controls-row">
-                    <div class="controls-left">
-                        <button class="control-btn" id="playPauseBtn" onclick="togglePlay()" title="เล่น/หยุด">▶</button>
-                        <button class="control-btn" onclick="skipEpisode(-1)" title="ตอนก่อนหน้า">⏮</button>
-                        <button class="control-btn" onclick="skipEpisode(1)" title="ตอนถัดไป">⏭</button>
-                        <button class="control-btn" id="muteBtn" onclick="toggleMute()" title="เสียง">🔊</button>
-                        <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="1" oninput="changeVolume(this.value)">
-                        <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
-                    </div>
-                    <div class="controls-right">
-                        <button class="control-btn" onclick="toggleSubMenu('qualityMenu')" title="ความละเอียด">⚙</button>
-                        <button class="control-btn" onclick="toggleSubMenu('subMenu')" title="ซับไตเติ้ล">CC</button>
-                        <button class="control-btn" onclick="toggleTheater()" title="โหมดโรงภาพยนตร์">🖥</button>
-                        <button class="control-btn" onclick="toggleFullscreen()" title="เต็มจอ" id="fullscreenBtn">⛶</button>
-                    </div>
-                </div>
+                <!-- Meta row -->
+                <div class="watch-meta" id="watchMeta"></div>
+
+                <!-- Synopsis -->
+                <div class="watch-synopsis" id="watchSynopsis"></div>
             </div>
 
-            <!-- Quality Menu -->
-            <div class="settings-menu" id="qualityMenu">
-                <div class="menu-title">ความละเอียด</div>
-                <div class="menu-item active" onclick="setQuality('1080p', this)">1080p HD</div>
-                <div class="menu-item" onclick="setQuality('720p', this)">720p</div>
-                <div class="menu-item" onclick="setQuality('480p', this)">480p</div>
-                <div class="menu-item" onclick="setQuality('360p', this)">360p</div>
-            </div>
-
-            <!-- Subtitle Menu -->
-            <div class="settings-menu" id="subMenu">
-                <div class="menu-title">ซับไตเติ้ล / พากย์</div>
-                <div class="menu-item active" onclick="setSub('th-sub', this)">ซับไทย</div>
-                <div class="menu-item" onclick="setSub('th-dub', this)">พากย์ไทย</div>
-                <div class="menu-item" onclick="setSub('none', this)">ปิด</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Episode Info + Nav -->
-    <div class="container" style="padding:var(--space-lg) var(--space-xl);">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-md);margin-bottom:var(--space-lg);">
-            <div>
-                <h1 id="epAnimeTitle" style="font-size:var(--font-size-xl);font-weight:700;margin-bottom:4px;"></h1>
-                <p id="epTitle" style="font-size:var(--font-size-lg);color:var(--text-secondary);"></p>
-            </div>
-            <div style="display:flex;gap:var(--space-sm);">
-                <button class="btn btn-secondary btn-sm" onclick="skipEpisode(-1)">← ตอนก่อนหน้า</button>
-                <button class="btn btn-primary btn-sm" onclick="skipEpisode(1)">ตอนถัดไป →</button>
-            </div>
-        </div>
-
-        <!-- Episode Selector -->
-        <div style="margin-bottom:var(--space-xl);">
-            <h3 style="font-size:var(--font-size-base);font-weight:600;margin-bottom:var(--space-md);"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16" style="display:inline;vertical-align:middle;"><rect x="2" y="4" width="20" height="14" rx="2" stroke="var(--accent-cyan)" stroke-width="2" fill="none"/><line x1="8" y1="21" x2="16" y2="21" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="18" x2="12" y2="21" stroke="var(--accent-cyan)" stroke-width="2"/></svg> เลือกตอน</h3>
-            <div id="epSelector" style="display:flex;flex-wrap:wrap;gap:var(--space-sm);"></div>
-        </div>
-
-        <!-- Comments -->
-        <div class="comments-section" style="padding:0;">
-            <h3 style="font-size:var(--font-size-base);font-weight:600;margin-bottom:var(--space-lg);"><svg class="icon-sm" viewBox="0 0 24 24" width="16" height="16" style="display:inline;vertical-align:middle;"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="var(--accent-blue)" stroke-width="2" fill="none"/></svg> ความคิดเห็น</h3>
-
-            <div class="comment-form" id="commentForm">
-                <img class="avatar" src="" id="commentAvatar" alt=""
-                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%231a1a2e%22 width=%2240%22 height=%2240%22/><text x=%2250%%22 y=%2255%%22 text-anchor=%22middle%22 fill=%22%23a855f7%22 font-size=%2218%22>?</text></svg>'">
-                <div style="flex:1;">
-                    <textarea id="commentText" placeholder="แสดงความคิดเห็น..."></textarea>
-                    <div style="text-align:right;margin-top:var(--space-sm);">
-                        <button class="btn btn-primary btn-sm" onclick="postComment()">ส่ง</button>
+            <!-- Comments -->
+            <div class="watch-comments">
+                <h3 class="watch-section-title">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--accent-blue)" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                    ความคิดเห็น
+                </h3>
+                <div class="comment-form" id="commentForm">
+                    <img class="avatar" src="" id="commentAvatar" alt=""
+                         onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><rect fill=%22%231a1a2e%22 width=%2240%22 height=%2240%22/><text x=%2250%%22 y=%2255%%22 text-anchor=%22middle%22 fill=%22%23a855f7%22 font-size=%2218%22>?</text></svg>'">
+                    <div style="flex:1;">
+                        <textarea id="commentText" placeholder="แสดงความคิดเห็น..."></textarea>
+                        <div style="text-align:right;margin-top:var(--space-sm);">
+                            <button class="btn btn-primary btn-sm" onclick="postComment()">ส่ง</button>
+                        </div>
                     </div>
                 </div>
+                <div id="commentsList"></div>
             </div>
-
-            <div id="commentsList"></div>
         </div>
+
+        <!-- RIGHT: Episode sidebar -->
+        <aside class="watch-sidebar" id="watchSidebar">
+            <div class="sidebar-header">
+                <h3 class="sidebar-anime-title" id="sidebarTitle"></h3>
+                <span class="sidebar-ep-count" id="sidebarCount"></span>
+            </div>
+            <div class="ep-grid" id="epGrid"></div>
+        </aside>
+
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script src="/js/app.js"></script>
 <script src="/js/player.js"></script>
 </body>

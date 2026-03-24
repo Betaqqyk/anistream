@@ -1,12 +1,15 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../database/db');
 
-const watchHistorySchema = new mongoose.Schema({
-    user_id:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    episode_id:       { type: mongoose.Schema.Types.ObjectId, ref: 'Episode', required: true },
-    progress_seconds: { type: Number, default: 0 },
-    completed:        { type: Boolean, default: false }
-}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
+const WatchHistory = sequelize.define('WatchHistory', {
+    id:               { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    user_id:          { type: DataTypes.INTEGER, allowNull: false },
+    episode_id:       { type: DataTypes.INTEGER, allowNull: false },
+    progress_seconds: { type: DataTypes.INTEGER, defaultValue: 0 },
+    completed:        { type: DataTypes.BOOLEAN, defaultValue: false }
+}, {
+    tableName: 'watch_histories',
+    indexes: [{ unique: true, fields: ['user_id', 'episode_id'] }]
+});
 
-watchHistorySchema.index({ user_id: 1, episode_id: 1 }, { unique: true });
-
-module.exports = mongoose.model('WatchHistory', watchHistorySchema);
+module.exports = WatchHistory;

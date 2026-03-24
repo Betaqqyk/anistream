@@ -1,46 +1,59 @@
-const mongoose = require('mongoose');
+const { DataTypes } = require('sequelize');
+const { sequelize } = require('../database/db');
 
-const commentSchema = new mongoose.Schema({
-    user_id:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    episode_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Episode', required: true },
-    content:    { type: String, required: true }
-}, { timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } });
+const Comment = sequelize.define('Comment', {
+    id:         { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+    user_id:    { type: DataTypes.INTEGER, allowNull: false },
+    episode_id: { type: DataTypes.INTEGER, allowNull: false },
+    content:    { type: DataTypes.TEXT, allowNull: false }
+}, {
+    tableName: 'comments',
+    indexes: [{ fields: ['episode_id'] }]
+});
 
-commentSchema.index({ episode_id: 1 });
+// --------------- Static helpers ---------------
 
-// --------------- static helpers ---------------
-
-commentSchema.statics.getByEpisode = async function (episodeId, limit = 50) {
-    return this.find({ episode_id: episodeId })
-        .sort({ created_at: -1 })
-        .limit(limit)
-        .populate('user_id', 'username avatar')
-        .lean()
-        .then(docs => docs.map(d => ({
-            ...d,
-            username: d.user_id?.username || '',
-            avatar:   d.user_id?.avatar || ''
-        })));
+Comment.getByEpisode = async function (episodeId, limit = 50) {
+    const User = require('./User');
+    const docs = await this.findAll({
+        where: { episode_id: episodeId },
+        order: [['created_at', 'DESC']],
+        limit,
+        include: [{ model: User, as: 'user', attributes: ['username', 'avatar'] }]
+    });
+    return docs.map(d => {
+        const plain = d.get({ plain: true });
+        return {
+            ...plain,
+            username: plain.user?.username || '',
+            avatar:   plain.user?.avatar || ''
+        };
+    });
 };
 
-commentSchema.statics.getAllAdmin = async function (limit = 100) {
-    const docs = await this.find()
-        .sort({ created_at: -1 })
-        .limit(limit)
-        .populate('user_id', 'username')
-        .populate({
-            path: 'episode_id',
-            select: 'title anime_id',
-            populate: { path: 'anime_id', select: 'title' }
-        })
-        .lean();
-
-    return docs.map(d => ({
-        ...d,
-        username:      d.user_id?.username || '',
-        episode_title: d.episode_id?.title || '',
-        anime_title:   d.episode_id?.anime_id?.title || ''
-    }));
+Comment.getAllAdmin = async function (limit = 100) {
+    const User = require('./User');
+    const Episode = require('./Episode');
+    const Anime = require('./Anime');
+    const docs = await this.findAll({
+        order: [['created_at', 'DESC']],
+        limit,
+        include: [
+            { model: User, as: 'user', attributes: ['username'] },
+            { model: Episode, as: 'episode', attributes: ['title', 'anime_id'],
+              include: [{ model: Anime, as: 'anime', attributes: ['title'] }]
+            }
+        ]
+    });
+    return docs.map(d => {
+        const plain = d.get({ plain: true });
+        return {
+            ...plain,
+            username:      plain.user?.username || '',
+            episode_title: plain.episode?.title || '',
+            anime_title:   plain.episode?.anime?.title || ''
+        };
+    });
 };
 
-module.exports = mongoose.model('Comment', commentSchema);
+module.exports = Comment;

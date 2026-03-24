@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const Comment = require('../../models/Comment');
+const { Comment, User } = require('../../models');
+const { requireAuth, requireAdmin } = require('../../middleware/auth');
+const { validateComment } = require('../../middleware/validate');
 
 // GET /api/comments/episode/:episodeId
 router.get('/episode/:episodeId', async (req, res) => {
@@ -20,31 +22,33 @@ router.get('/', async (req, res) => {
     }
 });
 
-// POST /api/comments
-router.post('/', async (req, res) => {
+// POST /api/comments — require auth
+router.post('/', requireAuth, validateComment, async (req, res) => {
     try {
-        const { user_id, episode_id, content } = req.body;
-        if (!content || !content.trim()) {
-            return res.status(400).json({ error: 'Content is required' });
-        }
-        const comment = await Comment.create({ user_id, episode_id, content: content.trim() });
-        const populated = await Comment.findById(comment._id)
-            .populate('user_id', 'username avatar')
-            .lean();
+        const { episode_id, content } = req.body;
+        const comment = await Comment.create({
+            user_id: req.user.id,
+            episode_id,
+            content: content.trim()
+        });
+        const full = await Comment.findByPk(comment.id, {
+            include: [{ model: User, as: 'user', attributes: ['username', 'avatar'] }]
+        });
+        const plain = full.get({ plain: true });
         res.status(201).json({
-            ...populated,
-            username: populated.user_id?.username || '',
-            avatar:   populated.user_id?.avatar || ''
+            ...plain,
+            username: plain.user?.username || '',
+            avatar:   plain.user?.avatar || ''
         });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
 
-// DELETE /api/comments/:id
-router.delete('/:id', async (req, res) => {
+// DELETE /api/comments/:id — admin
+router.delete('/:id', requireAdmin, async (req, res) => {
     try {
-        await Comment.findByIdAndDelete(req.params.id);
+        await Comment.destroy({ where: { id: req.params.id } });
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: err.message });

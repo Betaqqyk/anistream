@@ -1,204 +1,272 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="02HUB — แพลตฟอร์มดูอนิเมะออนไลน์ ซับไทย พากย์ไทย อัปเดตทุกสัปดาห์">
     <title>02HUB — ดูอนิเมะออนไลน์</title>
     <link rel="stylesheet" href="/css/style.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2300d4ff'/><polygon points='40,30 70,50 40,70' fill='%23fff'/></svg>">
 </head>
+
 <body>
 
-<!-- ═══ NAVBAR ═══ -->
-<nav class="navbar" id="navbar">
-    <div class="container">
-        <a href="/" class="nav-logo">
-            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs>
-                <polygon points="5 3 19 12 5 21 5 3"/>
-            </svg>
-            02HUB
-        </a>
-
-        <div class="nav-links" id="navLinks">
-            <a href="/" class="active">หน้าแรก</a>
-            <a href="/search.html">ค้นหา</a>
-            <a href="/airing.html">กำลังฉาย</a>
-            <a href="/popular.html">ยอดนิยม</a>
-        </div>
-
-        <div class="nav-search">
-            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" id="searchInput" placeholder="ค้นหาอนิเมะ..." autocomplete="off">
-            <div class="search-results" id="searchResults"></div>
-        </div>
-
-        <div class="nav-user" id="navUser">
-            <button class="btn-login btn" onclick="showAuthModal()">เข้าสู่ระบบ</button>
-        </div>
-
-        <div class="nav-toggle" id="navToggle" onclick="toggleMobileNav()">
-            <span></span><span></span><span></span>
-        </div>
-    </div>
-</nav>
-
-<!-- ═══ HERO BANNER ═══ -->
-<section class="hero" id="heroBanner">
-    <!-- Slides will be injected by JS -->
-    <div class="hero-dots" id="heroDots"></div>
-</section>
-
-<!-- ═══ MAIN CONTENT ═══ -->
-<main style="padding-top: var(--space-lg);">
-
-    <!-- กำลังฉายซีซั่นนี้ -->
-    <section class="section">
+    <!-- ═══ NAVBAR ═══ -->
+    <nav class="navbar" id="navbar">
         <div class="container">
-            <div class="section-header">
-                <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22"><path d="M12 23c-3.6 0-8-3.13-8-9 0-4.5 3.5-8.7 5-10.5.3-.36.87-.1.8.36C9.4 7 11 8 12 8c-.5-3 1.5-6.5 3-8 .28-.28.75-.1.8.3C16.5 5 20 8 20 14c0 5.87-4.4 9-8 9z" fill="url(#fireGrad)"/><defs><linearGradient id="fireGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f97316"/><stop offset="100%" stop-color="#ef4444"/></linearGradient></defs></svg> <span class="accent">กำลังฉาย</span>ซีซั่นนี้</h2>
-                <a href="/airing.html" class="section-more">ดูทั้งหมด →</a>
-            </div>
-            <div class="slider-wrapper">
-                <button class="slider-btn prev" onclick="slideScroll('airingSlider', -1)">‹</button>
-                <div class="slider" id="airingSlider"></div>
-                <button class="slider-btn next" onclick="slideScroll('airingSlider', 1)">›</button>
-            </div>
-        </div>
-    </section>
+            <a href="/" class="nav-logo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <defs>
+                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#00d4ff" />
+                            <stop offset="100%" style="stop-color:#0ea5e9" />
+                        </linearGradient>
+                    </defs>
+                    <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+                02HUB
+            </a>
 
-    <!-- ฮิตประจำสัปดาห์ -->
-    <section class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="url(#boltGrad)" stroke="none"/><defs><linearGradient id="boltGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#facc15"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs></svg> <span class="accent">ฮิต</span>ประจำสัปดาห์</h2>
-                <a href="/popular.html" class="section-more">ดูทั้งหมด →</a>
-            </div>
-            <div class="slider-wrapper">
-                <button class="slider-btn prev" onclick="slideScroll('topSlider', -1)">‹</button>
-                <div class="slider" id="topSlider"></div>
-                <button class="slider-btn next" onclick="slideScroll('topSlider', 1)">›</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- ตอนใหม่ล่าสุด -->
-    <section class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22"><rect x="2" y="2" width="20" height="20" rx="4" fill="url(#newGrad)"/><text x="12" y="16" text-anchor="middle" fill="white" font-size="10" font-weight="bold">NEW</text><defs><linearGradient id="newGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22c55e"/><stop offset="100%" stop-color="#06b6d4"/></linearGradient></defs></svg> ตอนใหม่<span class="accent">ล่าสุด</span></h2>
-                <a href="/search.html?sort=latest" class="section-more">ดูทั้งหมด →</a>
-            </div>
-            <div class="slider-wrapper">
-                <button class="slider-btn prev" onclick="slideScroll('latestSlider', -1)">‹</button>
-                <div class="slider" id="latestSlider"></div>
-                <button class="slider-btn next" onclick="slideScroll('latestSlider', 1)">›</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- คะแนนสูงสุด -->
-    <section class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="url(#starGrad)"/><defs><linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#facc15"/><stop offset="100%" stop-color="#f97316"/></linearGradient></defs></svg> คะแนน<span class="accent">สูงสุด</span></h2>
-                <a href="/popular.html" class="section-more">ดูทั้งหมด →</a>
-            </div>
-            <div class="slider-wrapper">
-                <button class="slider-btn prev" onclick="slideScroll('ratedSlider', -1)">‹</button>
-                <div class="slider" id="ratedSlider"></div>
-                <button class="slider-btn next" onclick="slideScroll('ratedSlider', 1)">›</button>
-            </div>
-        </div>
-    </section>
-
-</main>
-
-<!-- ═══ FOOTER ═══ -->
-<footer class="footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-brand">
-                <div class="logo"><svg viewBox="0 0 24 24" width="24" height="24" style="display:inline;vertical-align:middle;margin-right:6px;"><circle cx="12" cy="12" r="10" fill="url(#logoGrad)" opacity="0.2"/><polygon points="10 8 16 12 10 16" fill="url(#logoGrad)"/><defs><linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00d4ff"/><stop offset="100%" stop-color="#0ea5e9"/></linearGradient></defs></svg>02HUB</div>
-                <p>แพลตฟอร์มดูอนิเมะออนไลน์ชั้นนำ ครบทุกเรื่อง ซับไทย พากย์ไทย อัปเดตใหม่ทุกสัปดาห์</p>
-            </div>
-            <div class="footer-col">
-                <h4>เมนู</h4>
-                <a href="/">หน้าแรก</a>
+            <div class="nav-links" id="navLinks">
+                <a href="/" class="active">หน้าแรก</a>
                 <a href="/search.html">ค้นหา</a>
                 <a href="/airing.html">กำลังฉาย</a>
                 <a href="/popular.html">ยอดนิยม</a>
+                <div class="nav-dropdown">
+                    <a href="javascript:void(0)" class="dropdown-toggle">อนิเมะจีน <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+                    <div class="dropdown-menu">
+                        <a href="/search.html?q=จีน ซับไทย">ซับไตเติ้ล</a>
+                        <a href="/search.html?q=จีน พากย์ไทย">พากย์ไทย</a>
+                    </div>
+                </div>
             </div>
-            <div class="footer-col">
-                <h4>หมวดหมู่</h4>
-                <a href="/search.html?genre=action">Action</a>
-                <a href="/search.html?genre=romance">Romance</a>
-                <a href="/search.html?genre=comedy">Comedy</a>
-                <a href="/search.html?genre=isekai">Isekai</a>
+
+            <div class="nav-search">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                </svg>
+                <input type="text" id="searchInput" placeholder="ค้นหาอนิเมะ..." autocomplete="off">
+                <div class="search-results" id="searchResults"></div>
             </div>
-            <div class="footer-col">
-                <h4>Support</h4>
-                <a href="#">ติดต่อเรา</a>
-                <a href="#">นโยบายความเป็นส่วนตัว</a>
-                <a href="#">เงื่อนไขการใช้งาน</a>
-                <a href="#">FAQ</a>
+
+            <div class="nav-user" id="navUser">
+                <button class="btn-login btn" onclick="showAuthModal()">เข้าสู่ระบบ</button>
+            </div>
+
+            <div class="nav-toggle" id="navToggle" onclick="toggleMobileNav()">
+                <span></span><span></span><span></span>
             </div>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2025 02HUB. All rights reserved. Made with 💜 for anime fans.</p>
+    </nav>
+
+    <!-- ═══ HERO BANNER ═══ -->
+    <section class="hero" id="heroBanner">
+        <!-- Slides will be injected by JS -->
+        <div class="hero-dots" id="heroDots"></div>
+    </section>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main style="padding-top: var(--space-lg);">
+
+        <!-- กำลังฉายซีซั่นนี้ -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22">
+                            <path
+                                d="M12 23c-3.6 0-8-3.13-8-9 0-4.5 3.5-8.7 5-10.5.3-.36.87-.1.8.36C9.4 7 11 8 12 8c-.5-3 1.5-6.5 3-8 .28-.28.75-.1.8.3C16.5 5 20 8 20 14c0 5.87-4.4 9-8 9z"
+                                fill="url(#fireGrad)" />
+                            <defs>
+                                <linearGradient id="fireGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#f97316" />
+                                    <stop offset="100%" stop-color="#ef4444" />
+                                </linearGradient>
+                            </defs>
+                        </svg> <span class="accent">กำลังฉาย</span>ซีซั่นนี้</h2>
+                    <a href="/airing.html" class="section-more">ดูทั้งหมด →</a>
+                </div>
+                <div class="slider-wrapper">
+                    <button class="slider-btn prev" onclick="slideScroll('airingSlider', -1)">‹</button>
+                    <div class="slider" id="airingSlider"></div>
+                    <button class="slider-btn next" onclick="slideScroll('airingSlider', 1)">›</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ฮิตประจำสัปดาห์ -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="url(#boltGrad)" stroke="none" />
+                            <defs>
+                                <linearGradient id="boltGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#facc15" />
+                                    <stop offset="100%" stop-color="#f97316" />
+                                </linearGradient>
+                            </defs>
+                        </svg> <span class="accent">ฮิต</span>ประจำสัปดาห์</h2>
+                    <a href="/popular.html" class="section-more">ดูทั้งหมด →</a>
+                </div>
+                <div class="slider-wrapper">
+                    <button class="slider-btn prev" onclick="slideScroll('topSlider', -1)">‹</button>
+                    <div class="slider" id="topSlider"></div>
+                    <button class="slider-btn next" onclick="slideScroll('topSlider', 1)">›</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ตอนใหม่ล่าสุด -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22">
+                            <rect x="2" y="2" width="20" height="20" rx="4" fill="url(#newGrad)" /><text x="12" y="16"
+                                text-anchor="middle" fill="white" font-size="10" font-weight="bold">NEW</text>
+                            <defs>
+                                <linearGradient id="newGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#22c55e" />
+                                    <stop offset="100%" stop-color="#06b6d4" />
+                                </linearGradient>
+                            </defs>
+                        </svg> ตอนใหม่<span class="accent">ล่าสุด</span></h2>
+                    <a href="/search.html?sort=latest" class="section-more">ดูทั้งหมด →</a>
+                </div>
+                <div class="slider-wrapper">
+                    <button class="slider-btn prev" onclick="slideScroll('latestSlider', -1)">‹</button>
+                    <div class="slider" id="latestSlider"></div>
+                    <button class="slider-btn next" onclick="slideScroll('latestSlider', 1)">›</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- คะแนนสูงสุด -->
+        <section class="section">
+            <div class="container">
+                <div class="section-header">
+                    <h2 class="section-title"><svg class="icon" viewBox="0 0 24 24" width="22" height="22">
+                            <path
+                                d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z"
+                                fill="url(#starGrad)" />
+                            <defs>
+                                <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#facc15" />
+                                    <stop offset="100%" stop-color="#f97316" />
+                                </linearGradient>
+                            </defs>
+                        </svg> คะแนน<span class="accent">สูงสุด</span></h2>
+                    <a href="/popular.html" class="section-more">ดูทั้งหมด →</a>
+                </div>
+                <div class="slider-wrapper">
+                    <button class="slider-btn prev" onclick="slideScroll('ratedSlider', -1)">‹</button>
+                    <div class="slider" id="ratedSlider"></div>
+                    <button class="slider-btn next" onclick="slideScroll('ratedSlider', 1)">›</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo"><svg viewBox="0 0 24 24" width="24" height="24"
+                            style="display:inline;vertical-align:middle;margin-right:6px;">
+                            <circle cx="12" cy="12" r="10" fill="url(#logoGrad)" opacity="0.2" />
+                            <polygon points="10 8 16 12 10 16" fill="url(#logoGrad)" />
+                            <defs>
+                                <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#00d4ff" />
+                                    <stop offset="100%" stop-color="#0ea5e9" />
+                                </linearGradient>
+                            </defs>
+                        </svg>02HUB</div>
+                    <p>แพลตฟอร์มดูอนิเมะออนไลน์ชั้นนำ ครบทุกเรื่อง ซับไทย พากย์ไทย อัปเดตใหม่ทุกสัปดาห์</p>
+                </div>
+                <div class="footer-col">
+                    <h4>เมนู</h4>
+                    <a href="/">หน้าแรก</a>
+                    <a href="/search.html">ค้นหา</a>
+                    <a href="/airing.html">กำลังฉาย</a>
+                    <a href="/popular.html">ยอดนิยม</a>
+                </div>
+                <div class="footer-col">
+                    <h4>หมวดหมู่</h4>
+                    <a href="/search.html?genre=action">Action</a>
+                    <a href="/search.html?genre=romance">Romance</a>
+                    <a href="/search.html?genre=comedy">Comedy</a>
+                    <a href="/search.html?genre=isekai">Isekai</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Support</h4>
+                    <a href="#">ติดต่อเรา</a>
+                    <a href="#">นโยบายความเป็นส่วนตัว</a>
+                    <a href="#">เงื่อนไขการใช้งาน</a>
+                    <a href="#">FAQ</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 02HUB. All rights reserved. Made By ZeroTwo Studio.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══ AUTH MODAL ═══ -->
+    <div class="modal-overlay auth-modal" id="authModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>ยินดีต้อนรับสู่ 02HUB</h2>
+                <button onclick="closeAuthModal()" style="font-size:20px;color:var(--text-muted);">&times;</button>
+            </div>
+            <div class="auth-tabs">
+                <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
+                <div class="auth-tab" onclick="switchAuthTab('register')">สมัครสมาชิก</div>
+            </div>
+            <div class="modal-body">
+                <form id="loginForm" onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>ชื่อผู้ใช้</label>
+                        <input type="text" name="username" placeholder="กรอกชื่อผู้ใช้" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" name="password" placeholder="กรอกรหัสผ่าน" required>
+                    </div>
+                    <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);">
+                        <div id="loginRecaptcha"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ</button>
+                </form>
+                <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>ชื่อผู้ใช้</label>
+                        <input type="text" name="username" placeholder="กรอกชื่อผู้ใช้" required>
+                    </div>
+                    <div class="form-group">
+                        <label>อีเมล</label>
+                        <input type="email" name="email" placeholder="กรอกอีเมล" required>
+                    </div>
+                    <div class="form-group">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" name="password" placeholder="กรอกรหัสผ่าน" required minlength="6">
+                    </div>
+                    <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);">
+                        <div id="registerRecaptcha"></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width:100%">สมัครสมาชิก</button>
+                </form>
+            </div>
         </div>
     </div>
-</footer>
 
-<!-- ═══ AUTH MODAL ═══ -->
-<div class="modal-overlay auth-modal" id="authModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h2>ยินดีต้อนรับสู่ 02HUB</h2>
-            <button onclick="closeAuthModal()" style="font-size:20px;color:var(--text-muted);">&times;</button>
-        </div>
-        <div class="auth-tabs">
-            <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
-            <div class="auth-tab" onclick="switchAuthTab('register')">สมัครสมาชิก</div>
-        </div>
-        <div class="modal-body">
-            <form id="loginForm" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label>ชื่อผู้ใช้</label>
-                    <input type="text" name="username" placeholder="กรอกชื่อผู้ใช้" required>
-                </div>
-                <div class="form-group">
-                    <label>รหัสผ่าน</label>
-                    <input type="password" name="password" placeholder="กรอกรหัสผ่าน" required>
-                </div>
-                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);">
-                    <div id="loginRecaptcha"></div>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ</button>
-            </form>
-            <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
-                <div class="form-group">
-                    <label>ชื่อผู้ใช้</label>
-                    <input type="text" name="username" placeholder="กรอกชื่อผู้ใช้" required>
-                </div>
-                <div class="form-group">
-                    <label>อีเมล</label>
-                    <input type="email" name="email" placeholder="กรอกอีเมล" required>
-                </div>
-                <div class="form-group">
-                    <label>รหัสผ่าน</label>
-                    <input type="password" name="password" placeholder="กรอกรหัสผ่าน" required minlength="6">
-                </div>
-                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);">
-                    <div id="registerRecaptcha"></div>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width:100%">สมัครสมาชิก</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script src="/js/app.js"></script>
+    <script src="/js/app.js"></script>
 </body>
+
 </html>

@@ -1,14 +1,14 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../database/db');
 
-const Watchlist = sequelize.define('Watchlist', {
+const Rating = sequelize.define('Rating', {
     id:       { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     user_id:  { type: DataTypes.INTEGER, allowNull: false },
     anime_id: { type: DataTypes.INTEGER, allowNull: false },
-    status:   { type: DataTypes.ENUM('want', 'watching', 'completed', 'on_hold'), defaultValue: 'want' }
+    score:    { type: DataTypes.FLOAT, allowNull: false }
 }, {
-    tableName: 'watchlists',
+    tableName: 'ratings',
     indexes: [{ unique: true, fields: ['user_id', 'anime_id'] }]
 });
 
-module.exports = Watchlist;
+module.exports = Rating;

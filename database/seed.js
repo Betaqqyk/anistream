@@ -1,42 +1,42 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const { connectDB } = require('./db');
-
-// Models
-const Anime = require('../models/Anime');
-const Episode = require('../models/Episode');
-const User = require('../models/User');
-const Comment = require('../models/Comment');
-const WatchHistory = require('../models/WatchHistory');
-const Watchlist = require('../models/Watchlist');
+const { sequelize, Anime, Episode, User, Comment, WatchHistory, Watchlist } = require('../models');
 
 async function seed() {
     await connectDB();
+    // Drop and recreate all tables
+    await sequelize.sync({ force: true });
     console.log('🌱 Seeding database...');
-
-    // Clear existing data
-    await Promise.all([
-        Anime.deleteMany({}),
-        Episode.deleteMany({}),
-        User.deleteMany({}),
-        Comment.deleteMany({}),
-        WatchHistory.deleteMany({}),
-        Watchlist.deleteMany({})
-    ]);
 
     // --- Demo users ---
     const demoUser = await User.create({
         username: 'demo',
         email: 'demo@anistream.com',
         password_hash: bcrypt.hashSync('demo123', 10),
-        role: 'user'
+        role: 'user',
+        membership: 'free'
+    });
+    const vipUser = await User.create({
+        username: 'vip',
+        email: 'vip@anistream.com',
+        password_hash: bcrypt.hashSync('vip123', 10),
+        role: 'user',
+        membership: 'vip'
+    });
+    const svipUser = await User.create({
+        username: 'svip',
+        email: 'svip@anistream.com',
+        password_hash: bcrypt.hashSync('svip123', 10),
+        role: 'user',
+        membership: 'svip'
     });
     const adminUser = await User.create({
         username: 'admin',
         email: 'admin@anistream.com',
         password_hash: bcrypt.hashSync('admin123', 10),
-        role: 'admin'
+        role: 'admin',
+        membership: 'svip'
     });
 
     // --- Sample Anime ---
@@ -60,8 +60,8 @@ async function seed() {
             title: 'Solo Leveling Season 2',
             title_en: 'Solo Leveling: Arise from the Shadow',
             synopsis: 'ซองจินอู ฮันเตอร์อันดับ E ที่อ่อนแอที่สุด ได้รับ "ระบบ" ลึกลับที่ทำให้เขาเลเวลอัพได้อย่างไม่มีขีดจำกัด กลายเป็นนักล่าที่แข็งแกร่งที่สุดในโลก',
-            cover_image: 'https://cdn.myanimelist.net/images/anime/1137/142erta.jpg',
-            banner_image: 'https://cdn.myanimelist.net/images/anime/1137/142erta.jpg',
+            cover_image: 'https://cdn.myanimelist.net/images/anime/1298/134198.jpg',
+            banner_image: 'https://cdn.myanimelist.net/images/anime/1298/134198l.jpg',
             trailer_url: '',
             rating: 8.5,
             status: 'airing',
@@ -195,8 +195,8 @@ async function seed() {
             title: 'Blue Lock Season 2',
             title_en: 'Blue Lock Season 2',
             synopsis: 'โปรเจกต์ Blue Lock เพื่อค้นหาสตรายเกอร์อีโก้อิสต์ที่สุดของญี่ปุ่น การแข่งขันยิ่งเข้มข้น เมื่อนักเตะอีโก้มาเผชิญหน้ากัน!',
-            cover_image: 'https://cdn.myanimelist.net/images/anime/1418/117083.jpg',
-            banner_image: 'https://cdn.myanimelist.net/images/anime/1418/117083l.jpg',
+            cover_image: 'https://cdn.myanimelist.net/images/anime/1220/134232.jpg',
+            banner_image: 'https://cdn.myanimelist.net/images/anime/1220/134232l.jpg',
             trailer_url: '',
             rating: 8.1,
             status: 'airing',
@@ -210,8 +210,8 @@ async function seed() {
             title: 'Dandadan',
             title_en: 'Dandadan',
             synopsis: 'โอกาคุระ โมโมะ สาวที่เชื่อเรื่องผี กับทาคาคุระ เคน หนุ่มที่เชื่อเรื่อง UFO ต้องร่วมมือกันเผชิญหน้ากับภัยเหนือธรรมชาติทั้งผีและเอเลี่ยน!',
-            cover_image: 'https://cdn.myanimelist.net/images/anime/1259/143194.jpg',
-            banner_image: 'https://cdn.myanimelist.net/images/anime/1259/143194l.jpg',
+            cover_image: 'https://cdn.myanimelist.net/images/anime/1908/143487.jpg',
+            banner_image: 'https://cdn.myanimelist.net/images/anime/1908/143487l.jpg',
             trailer_url: '',
             rating: 8.8,
             status: 'airing',
@@ -223,17 +223,18 @@ async function seed() {
         }
     ];
 
-    const animeList = await Anime.insertMany(animeData);
+    const animeList = await Anime.bulkCreate(animeData);
     console.log(`  ✅ ${animeList.length} anime inserted`);
 
     // --- Sample Episodes (first 5 anime) ---
+    // Sample video — replace with your CDN URLs when deploying (set VIDEO_CDN_BASE in .env)
     const sampleVideo = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
     const episodeData = [];
     for (let i = 0; i < Math.min(5, animeList.length); i++) {
         const epCount = i <= 1 ? 12 : (i === 4 ? 6 : 8);
         for (let ep = 1; ep <= epCount; ep++) {
             episodeData.push({
-                anime_id: animeList[i]._id,
+                anime_id: animeList[i].id,
                 number: ep,
                 title: `ตอนที่ ${ep}`,
                 thumbnail: '',
@@ -242,31 +243,31 @@ async function seed() {
             });
         }
     }
-    const episodes = await Episode.insertMany(episodeData);
+    const episodes = await Episode.bulkCreate(episodeData);
     console.log(`  ✅ ${episodes.length} episodes inserted`);
 
     // --- Watch history for demo user ---
-    await WatchHistory.insertMany([
-        { user_id: demoUser._id, episode_id: episodes[0]._id, progress_seconds: 1440, completed: true },
-        { user_id: demoUser._id, episode_id: episodes[1]._id, progress_seconds: 1440, completed: true },
-        { user_id: demoUser._id, episode_id: episodes[2]._id, progress_seconds: 724, completed: false }
+    await WatchHistory.bulkCreate([
+        { user_id: demoUser.id, episode_id: episodes[0].id, progress_seconds: 1440, completed: true },
+        { user_id: demoUser.id, episode_id: episodes[1].id, progress_seconds: 1440, completed: true },
+        { user_id: demoUser.id, episode_id: episodes[2].id, progress_seconds: 724, completed: false }
     ]);
     console.log('  ✅ Watch history seeded');
 
     // --- Watchlist ---
-    await Watchlist.insertMany([
-        { user_id: demoUser._id, anime_id: animeList[0]._id, status: 'watching' },
-        { user_id: demoUser._id, anime_id: animeList[2]._id, status: 'want' },
-        { user_id: demoUser._id, anime_id: animeList[3]._id, status: 'completed' },
-        { user_id: demoUser._id, anime_id: animeList[7]._id, status: 'want' }
+    await Watchlist.bulkCreate([
+        { user_id: demoUser.id, anime_id: animeList[0].id, status: 'watching' },
+        { user_id: demoUser.id, anime_id: animeList[2].id, status: 'want' },
+        { user_id: demoUser.id, anime_id: animeList[3].id, status: 'completed' },
+        { user_id: demoUser.id, anime_id: animeList[7].id, status: 'want' }
     ]);
     console.log('  ✅ Watchlist seeded');
 
     // --- Sample comments ---
-    await Comment.insertMany([
-        { user_id: demoUser._id, episode_id: episodes[0]._id, content: 'ตอนแรกมันมากกกก! 🔥' },
-        { user_id: demoUser._id, episode_id: episodes[1]._id, content: 'แอนิเมชั่น MAPPA สุดยอดเหมือนเดิม' },
-        { user_id: adminUser._id, episode_id: episodes[0]._id, content: 'ใครยังไม่ดูรีบดูเลย ดีมากเลย' }
+    await Comment.bulkCreate([
+        { user_id: demoUser.id, episode_id: episodes[0].id, content: 'ตอนแรกมันมากกกก! 🔥' },
+        { user_id: demoUser.id, episode_id: episodes[1].id, content: 'แอนิเมชั่น MAPPA สุดยอดเหมือนเดิม' },
+        { user_id: adminUser.id, episode_id: episodes[0].id, content: 'ใครยังไม่ดูรีบดูเลย ดีมากเลย' }
     ]);
     console.log('  ✅ Comments seeded');
 

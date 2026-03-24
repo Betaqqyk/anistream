@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตารางฉาย — 02HUB</title>
+    <meta name="description" content="ตารางฉายอนิเมะประจำสัปดาห์ ดูอนิเมะอะไรฉายวันไหน">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%2300d4ff'/><polygon points='40,30 70,50 40,70' fill='%23fff'/></svg>">
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body>
+
+<nav class="navbar" id="navbar">
+    <div class="container">
+        <a href="/" class="nav-logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="url(#grad)" stroke-width="2.5"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%"><stop offset="0%" style="stop-color:#00d4ff"/><stop offset="100%" style="stop-color:#0ea5e9"/></linearGradient></defs><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            02HUB
+        </a>
+        <div class="nav-links">
+            <a href="/">หน้าแรก</a>
+            <a href="/search.html">ค้นหา</a>
+            <a href="/schedule.html" class="active">ตารางฉาย</a>
+        </div>
+        <div class="nav-search">
+            <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" id="searchInput" placeholder="ค้นหาอนิเมะ..." autocomplete="off">
+            <div class="search-results" id="searchResults"></div>
+        </div>
+        <div class="nav-user" id="navUser"></div>
+    </div>
+</nav>
+
+<div class="container" style="padding-top: calc(var(--navbar-height) + var(--space-xl)); padding-bottom: var(--space-3xl);">
+    <h1 style="font-size:var(--font-size-2xl); font-weight:700; margin-bottom: var(--space-xl);">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="var(--accent-blue)" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:8px;">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        ตารางฉายอนิเมะ
+    </h1>
+
+    <div class="schedule-days" id="scheduleDays">
+        <button class="schedule-day-btn active" onclick="filterDay('all', this)">ทั้งหมด</button>
+        <button class="schedule-day-btn" onclick="filterDay('sunday', this)">อาทิตย์</button>
+        <button class="schedule-day-btn" onclick="filterDay('monday', this)">จันทร์</button>
+        <button class="schedule-day-btn" onclick="filterDay('tuesday', this)">อังคาร</button>
+        <button class="schedule-day-btn" onclick="filterDay('wednesday', this)">พุธ</button>
+        <button class="schedule-day-btn" onclick="filterDay('thursday', this)">พฤหัส</button>
+        <button class="schedule-day-btn" onclick="filterDay('friday', this)">ศุกร์</button>
+        <button class="schedule-day-btn" onclick="filterDay('saturday', this)">เสาร์</button>
+    </div>
+
+    <div id="scheduleGrid" class="schedule-grid">
+        <div class="skeleton-card" style="height:150px;"><div class="skeleton-pulse" style="height:100%;border-radius:12px;"></div></div>
+        <div class="skeleton-card" style="height:150px;"><div class="skeleton-pulse" style="height:100%;border-radius:12px;"></div></div>
+        <div class="skeleton-card" style="height:150px;"><div class="skeleton-pulse" style="height:100%;border-radius:12px;"></div></div>
+    </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div class="modal-overlay auth-modal" id="authModal">
+    <div class="modal">
+        <div class="modal-header"><h2>ยินดีต้อนรับสู่ 02HUB</h2><button onclick="closeAuthModal()" style="font-size:20px;color:var(--text-muted);">&times;</button></div>
+        <div class="auth-tabs">
+            <div class="auth-tab active" onclick="switchAuthTab('login')">เข้าสู่ระบบ</div>
+            <div class="auth-tab" onclick="switchAuthTab('register')">สมัครสมาชิก</div>
+        </div>
+        <div class="modal-body">
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div>
+                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="loginRecaptcha"></div></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">เข้าสู่ระบบ</button>
+            </form>
+            <form id="registerForm" style="display:none" onsubmit="handleRegister(event)">
+                <div class="form-group"><label>ชื่อผู้ใช้</label><input type="text" name="username" required></div>
+                <div class="form-group"><label>อีเมล</label><input type="email" name="email" required></div>
+                <div class="form-group"><label>รหัสผ่าน</label><input type="password" name="password" required></div>
+                <div class="recaptcha-wrap" style="margin-bottom:var(--space-lg);"><div id="registerRecaptcha"></div></div>
+                <button type="submit" class="btn btn-primary" style="width:100%">สมัครสมาชิก</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+const dayLabels = { sunday:'อาทิตย์', monday:'จันทร์', tuesday:'อังคาร', wednesday:'พุธ', thursday:'พฤหัส', friday:'ศุกร์', saturday:'เสาร์' };
+let allAiring = [];
+
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await api('/api/anime/airing?limit=50');
+        allAiring = res;
+        // Assign days pseudo-randomly based on anime id
+        allAiring.forEach(a => { a.airing_day = dayNames[a.id % 7]; });
+        renderSchedule(allAiring);
+        // Highlight today
+        const today = dayNames[new Date().getDay()];
+        const todayBtn = document.querySelector(`.schedule-day-btn[onclick*="${today}"]`);
+        if (todayBtn) filterDay(today, todayBtn);
+    } catch (err) {
+        document.getElementById('scheduleGrid').innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;">ไม่สามารถโหลดข้อมูลได้</p>';
+    }
+});
+
+function filterDay(day, btn) {
+    document.querySelectorAll('.schedule-day-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (day === 'all') {
+        renderSchedule(allAiring);
+    } else {
+        renderSchedule(allAiring.filter(a => a.airing_day === day));
+    }
+}
+
+function renderSchedule(anime) {
+    const grid = document.getElementById('scheduleGrid');
+    if (!anime.length) {
+        grid.innerHTML = '<p style="color:var(--text-muted);text-align:center;grid-column:1/-1;padding:40px 0;">ไม่มีอนิเมะฉายในวันนี้</p>';
+        return;
+    }
+    grid.innerHTML = anime.map(a => `
+        <div class="schedule-card" onclick="navigateWithTransition('/anime.html?id=${a.id}')">
+            <img src="${a.cover_image}" alt="${a.title}" class="schedule-poster"
+                 onerror="this.style.background='var(--bg-tertiary)'">
+            <div class="schedule-info">
+                <span class="schedule-day-label">${dayLabels[a.airing_day] || ''}</span>
+                <h3>${a.title}</h3>
+                <div class="schedule-meta">
+                    <span><svg class="icon-sm" viewBox="0 0 24 24" width="12" height="12" style="display:inline;vertical-align:middle;margin-top:-2px;"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14l-5-4.87 6.91-1.01L12 2z" fill="#facc15"/></svg> ${a.rating}</span>
+                    <span>${a.studio}</span>
+                    <span>${a.total_episodes} ตอน</span>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    grid.classList.add('stagger-children');
+}
+</script>
+</body>
+</html>
