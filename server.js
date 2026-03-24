@@ -67,7 +67,10 @@ app.use((req, res) => {
     // Start VPS Cache cleanup background job
     startCleanupJob();
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
         console.log(`🚀 02HUB server running at http://localhost:${PORT}`);
     });
+    
+    // ตั้งค่า Timeout เป็น 1 ชั่วโมง (3600000 ms) สำหรับอัปโหลดไฟล์ขนาดใหญ่
+    server.setTimeout(3600000);
 })();
